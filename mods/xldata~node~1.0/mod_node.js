@@ -69,4 +69,25 @@ container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployI
 //container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 
 
+var sqlConfig = {
+  "address" : 'xld-sql-persist',
+  "connection" 		: 'MySQL',
+  "host" 			: 'localhost',
+  "port" 			: 3306,
+  "maxPoolSize" 	: 10,
+  "username" 		: 'root',
+  "password" 		: 'qwert1978',
+  "database" 		: 'flow'
+}
+
+container.deployModule("io.vertx~mod-mysql-postgresql~0.3.0-SNAPSHOT", 	sqlConfig, function(err, deployID) {
+	if (err) {
+		console.log("Deployment failed! " + err.getMessage());
+	} else {
+	}
+
+	
+});
+
+
 
