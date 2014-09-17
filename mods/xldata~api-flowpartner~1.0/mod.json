@@ -1,5 +1,5 @@
 {
-	"main" : "app.js",
+	"main" : "mod_flowpartner.js",
 	"auto-redeploy" : true,
 	"includes" : "xldata~api-partner~1.0"
 }

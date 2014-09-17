@@ -17,8 +17,15 @@ routeMatcher.noMatch(function(req) {
     req.response.end('Nothing matched');
 });
 
+var registeredPatterns = {};
+
 eb.registerHandler('xld-register-api', function(a) {
-	console.log('API reg arrived');
+	console.log('API REG ' + a.pattern);
+	
+	if (registeredPatterns[a.pattern]) {
+		throw "PATTERN ALREADY REGISTERED!";
+	}
+	registeredPatterns[a.pattern] = true;
 	
 	routeMatcher.get('/api' + a.pattern, function(request) {
 	
@@ -54,20 +61,12 @@ server.listen(8080, 'localhost');
 
 
 // ========================== LOAD MODULES ===========================
-
 var config = {};
 
-container.deployModule("xldata~site~1.0", config, function(err, deployID) {
-  if (!err) {
-    //console.log("The verticle has been deployed, deployment ID is " + deployID);
-	//eb.publish('test.address', 'Működik az eventbus2');
-  } else {
-    console.log("Deployment failed! " + err.getMessage());
-  }
-});
 
+container.deployModule("xldata~site~1.0", 				config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
+container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
+//container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 
-container.deployModule("xldata~api-partner~1.0", config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
-//container.deployModule("xldata~api-flowpartner~1.0", config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 
 

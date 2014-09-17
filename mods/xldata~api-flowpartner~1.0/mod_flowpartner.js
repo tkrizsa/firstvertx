@@ -1,7 +1,7 @@
 var xld = require('xld.js');
-var Partner = require('partner.js');
+var Partner = require('flowpartner.js');
 
-xld.log('XLD API Partner started ...');
+xld.log('XLD API FlowPartner started ...');
 
 
 

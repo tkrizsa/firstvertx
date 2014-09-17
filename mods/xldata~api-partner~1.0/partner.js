@@ -1,13 +1,25 @@
 
 var Elem = require('elem.js');
 
+var Partner = function() {
+	Elem.call(this);
+
+	
+	
+	
+};
+Partner.prototype = Object.create(Elem.prototype); 
+Partner.prototype.constructor = Partner;
 
 
-var partner = new Elem();
-partner.fields.partnerId = 1234;
-partner.fields.partnerName = 'Kiss Ramona';
+Partner.prototype.load = function(partnerId) {
+	this.fields.push({
+		partnerId : 5678,
+		partnerName : 'Tomacsek Kristóf'
+	});
+}
 
 
 
 
-module.exports = partner;
+module.exports = Partner;
