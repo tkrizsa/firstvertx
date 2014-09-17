@@ -27,7 +27,7 @@ eb.registerHandler('xld-register-api', function(a) {
 	}
 	registeredPatterns[a.pattern] = true;
 	
-	routeMatcher.get('/api' + a.pattern, function(request) {
+	routeMatcher.get('' + a.pattern, function(request) {
 	
 	
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
@@ -39,10 +39,15 @@ eb.registerHandler('xld-register-api', function(a) {
 		request.params().forEach(function(k, val) {
 			r.params[k] = val;
 		});
+		
+		r.path = request.path();
 
 		
 		eb.send(a.address, r, function(reply) {
-			request.response.end(JSON.stringify(reply));
+			if (reply.status) {
+				request.response.statusCode(reply.status);
+			}
+			request.response.end(reply.body);
 		});
 	
 	
@@ -88,6 +93,5 @@ container.deployModule("io.vertx~mod-mysql-postgresql~0.3.0-SNAPSHOT", 	sqlConfi
 
 	
 });
-
 
 
