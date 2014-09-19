@@ -19,21 +19,14 @@ routeMatcher.noMatch(function(req) {
 
 var registeredPatterns = {};
 
-eb.registerHandler('xld-register-api', function(a) {
+var regFunc = function(a) {
 	console.log('API REG ' + a.pattern);
-	
 	if (registeredPatterns[a.pattern]) {
 		throw "PATTERN ALREADY REGISTERED!";
 	}
 	registeredPatterns[a.pattern] = true;
-	
 	routeMatcher.get('' + a.pattern, function(request) {
-	
-	
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
-		
-
-		
 		var r = {};
 		r.params = {};
 		request.params().forEach(function(k, val) {
@@ -47,16 +40,25 @@ eb.registerHandler('xld-register-api', function(a) {
 			if (reply.status) {
 				request.response.statusCode(reply.status);
 			}
+			if (reply.contentType) {
+				request.response.putHeader('content-type', reply.contentType);
+			}
 			request.response.end(reply.body);
 		});
 	
 	
 	});
-});
+}
 
+eb.registerHandler('xld-register-http', regFunc);
 
 
 var server = vertx.createHttpServer();
+
+server.ssl(true);
+server.keyStorePath('xldata.jks');
+server.keyStorePassword('qwert1978');
+
 server.requestHandler(routeMatcher);
 
 server.listen(8080, 'localhost');

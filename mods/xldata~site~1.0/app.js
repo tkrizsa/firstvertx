@@ -18,7 +18,20 @@ var fileLoader = function(req, replier) {
 	vertx.fileSystem.readFile('web/'+f, function(err, res) {
 		if (!err) {
 			var x = res.toString();
-			replier({body : x});
+			var ct = 'text/plain';
+			var ext = f.split('.').slice(-1)[0];
+			
+			switch (ext) {
+				case 'html' 	: ct = 'text/html';
+				break;
+				case 'css' 		: ct = 'text/css';
+				break;
+				case 'js' 		: ct = 'text/javascript';
+				break;
+			
+			}
+			
+			replier({body : x, contentType : ct});
 		} else {
 			replier({body : '404 not found', status : 404});
 		}
@@ -28,9 +41,9 @@ var fileLoader = function(req, replier) {
 
 
 
-xld.api('/', fileLoader);
-xld.api('/css/:file', fileLoader);
-xld.api('/js/:file', fileLoader);
-xld.api('/js/vendor/:file', fileLoader);
+xld.http('/', fileLoader);
+xld.http('/css/:file', fileLoader);
+xld.http('/js/:file', fileLoader);
+xld.http('/js/vendor/:file', fileLoader);
 
 

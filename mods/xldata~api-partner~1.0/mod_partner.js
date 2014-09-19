@@ -13,7 +13,7 @@ xld.api('/api/partner/:partnerId', function(req, replier) {
 		if (err) {
 			replier(err);
 		} else {
-			replier({body : JSON.stringify(p.get())});
+			replier(p.get(), 'partner');
 		}
 	});
 });

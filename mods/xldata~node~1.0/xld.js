@@ -12,14 +12,32 @@ var Node = function() {
 
 	this.api = function(pattern, func) {
 		var address = pattern + '_' + Math.random();
-		eb.publish('xld-register-api', {
+		eb.publish('xld-register-http', {
 			pattern : pattern,
 			address : address
 		});
 		
 		eb.registerHandler(address, function(req, replier) {
-			func(req, function(resp) {
-				replier(resp);
+			func(req, function(obj, objType) {
+				replier({
+					body 			: JSON.stringify(obj),
+					contentType 	: 'application/xldata.'+ objType +'+json'
+				});
+			});
+		});
+	}
+
+
+	this.http = function(pattern, func) {
+		var address = pattern + '_' + Math.random();
+		eb.publish('xld-register-http', {
+			pattern : pattern,
+			address : address
+		});
+		
+		eb.registerHandler(address, function(req, replier) {
+			func(req, function(reply) {
+				replier(reply);
 			});
 		});
 	}
