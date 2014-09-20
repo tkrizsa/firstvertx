@@ -17,15 +17,9 @@ routeMatcher.noMatch(function(req) {
     req.response.end('Nothing matched');
 });
 
-var registeredPatterns = {};
 
-var regFunc = function(a) {
-	console.log('API REG ' + a.pattern);
-	if (registeredPatterns[a.pattern]) {
-		throw "PATTERN ALREADY REGISTERED!";
-	}
-	registeredPatterns[a.pattern] = true;
-	routeMatcher.get('' + a.pattern, function(request) {
+var addRoute = function(pattern, address) {
+	routeMatcher.get(pattern, function(request) {
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
 		var r = {};
 		r.params = {};
@@ -34,9 +28,14 @@ var regFunc = function(a) {
 		});
 		
 		r.path = request.path();
+		
+		if (address == '_index') {
+			address = registeredPatterns['/'];
+			r.path = '/';
+		}
 
 		
-		eb.send(a.address, r, function(reply) {
+		eb.send(address, r, function(reply) {
 			if (reply.status) {
 				request.response.statusCode(reply.status);
 			}
@@ -45,12 +44,30 @@ var regFunc = function(a) {
 			}
 			request.response.end(reply.body);
 		});
-	
-	
 	});
 }
 
+var registeredPatterns = {};
+var regFunc = function(a) {
+	console.log('API REG ' + a.pattern);
+	if (registeredPatterns[a.pattern]) {
+		throw "PATTERN ALREADY REGISTERED!";
+	}
+	registeredPatterns[a.pattern] = a.address;
+	var pat = a.pattern;
+	if (a.kind == 'template') {
+		pat = '/templates' + a.pattern;
+	}
+	addRoute(pat, a.address);
+	if (a.kind == 'template') {
+		addRoute(a.pattern, '_index');
+	}
+	
+	
+}	
+
 eb.registerHandler('xld-register-http', regFunc);
+
 
 
 var server = vertx.createHttpServer();
@@ -61,7 +78,7 @@ server.keyStorePassword('qwert1978');
 
 server.requestHandler(routeMatcher);
 
-server.listen(8080, 'localhost');
+server.listen(8080, '0.0.0.0');
 
  
 

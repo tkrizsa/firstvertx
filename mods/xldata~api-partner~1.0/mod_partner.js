@@ -17,3 +17,7 @@ xld.api('/api/partner/:partnerId', function(req, replier) {
 		}
 	});
 });
+
+
+xld.template('partners');
+xld.template('about');

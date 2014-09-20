@@ -13,6 +13,7 @@ var Node = function() {
 	this.api = function(pattern, func) {
 		var address = pattern + '_' + Math.random();
 		eb.publish('xld-register-http', {
+			kind 	: 'api',
 			pattern : pattern,
 			address : address
 		});
@@ -31,6 +32,7 @@ var Node = function() {
 	this.http = function(pattern, func) {
 		var address = pattern + '_' + Math.random();
 		eb.publish('xld-register-http', {
+			kind 	: 'site',
 			pattern : pattern,
 			address : address
 		});
@@ -39,6 +41,28 @@ var Node = function() {
 			func(req, function(reply) {
 				replier(reply);
 			});
+		});
+	}
+
+
+	this.template = function(templateName) {
+		var address = 'template'  + templateName + '_' + Math.random();
+		eb.publish('xld-register-http', {
+			kind 	: 'template',
+			pattern : '/'+templateName,
+			address : address
+		});
+		
+		eb.registerHandler(address, function(req, replier) {
+			vertx.fileSystem.readFile('client/'+templateName +'.html', function(err, res) {
+				if (!err) {
+					var x = res.toString();
+					var ct = 'text/html';
+					replier({body : x, contentType : ct});
+				} else {
+					replier({body : '404 template not found', status : 404});
+				}
+			});			
 		});
 	}
 
