@@ -1,77 +1,117 @@
 
 $(function() {
-	$.get('/api/partner/1', function(resp) {
-		$('body').append(resp);
-	});
-
-
-	// ======================= config History ==============================
-	var History = window.History;
-	if (History.enabled) {
-		State = History.getState();
-		// set initial state to first page that was loaded
-		History.pushState({urlPath: window.location.pathname}, $("title").text(), State.urlPath);
-	} else {
-		return false;
-	}
-
-	var loadAjaxContent = function(target, urlBase, selector) {
-		$(target).load(urlBase + ' ' + selector);
-	};
-
-	var updateContent = function(State) {
-		console.log('state:');
-		console.log(state);
-		var selector = '#' + State.data.urlPath.substring(1);
-		if ($(selector).length) { //content is already in #hidden_content
-			$('#content').children().appendTo('#hidden_content');
-			$(selector).appendTo('#content');
-		} else { 
-			$('#content').children().clone().appendTo('#hidden_content');
-			loadAjaxContent('#content', State.url, selector);
-		}
-	};
-
-	// Content update and back/forward button handler
-	History.Adapter.bind(window, 'statechange', function() {
-		updateContent(History.getState());
-	});
-
-	// navigation link handler
-	$('body').on('click', 'a', function(e) {
-		var urlPath = $(this).attr('href');
-		var title = $(this).text();
-		History.pushState({urlPath: urlPath}, title, urlPath);
-		return false; // prevents default click action of <a ...>
-	});
-
+	// $.get('/api/partner/1', function(resp) {
+		// $('body').append(resp);
+	// });
 });
+
 
 
 // ======================= config ANGULAR ==============================
 var xldApp = angular.module('xldApp', []);
 
-xldApp.config(function ($controllerProvider, $sceProvider) {
+xldApp.config(function ($controllerProvider, $sceProvider, $locationProvider) {
 	$sceProvider.enabled(false);
 	xldApp.__controllerProvider = $controllerProvider;
+	
+	$locationProvider.html5Mode(true);
+	$locationProvider.hashPrefix('!');
 });
 
 // ======================= xld PAGE Framework ==============================
 var xld = xld || {};
-xld.Page = function(title) {
-	this.title = title;
+xld.Page = function(mainScope, ix, title, template) {
+	this.mainScope 	= mainScope;
+	this.ix 		= ix;
+	this.title 		= title;
+	this.template 	= template;
 	
+	
+	this.close = function() {
+		console.log(this.mainScope);
+		console.log(this.ix);
+		delete this.mainScope.pages[this.ix];
+		
+		var $scope = this.mainScope;
+		setTimeout(function() {
+			$scope.$apply(function() {
+				$scope.setScroll();
+			});
+		});
+		
+	
+	};
+	
+	this.templateLoaded = function() {
+		this.mainScope.setScroll();
+	}
 }
 
-xldApp.controller('xldMain', ['$scope', function ($scope) {
+xldApp.controller('xldMain', ['$scope', '$location', function ($scope, $location) {
+
+	$scope.MAX_PAGE_IX = -1;
+	
+	$scope.$on('$locationChangeSuccess', function(){
+		console.log('$locationChangeSuccess');
+		console.log($location.path());
+		$scope.mainUrl = $location.path();
+		var ix = ++$scope.MAX_PAGE_IX;
+		$scope.pages[ix] = new xld.Page($scope, ix, $scope.mainUrl, '/templates' + ($scope.mainUrl == '/' ? '/home' : $scope.mainUrl));
+		//$scope.setScroll();
+	});
 
 	$scope.pages = {};
-	$scope.pages[0] = new xld.Page('Első ablak');
-	$scope.pages[1] = new xld.Page('Második ablak');
-		
+	
+	$scope.setScroll = function() {
+		var sumWidth = 0;
+		$('#xld-main-scroll').find('.xld-page-col').each(function() {
+			sumWidth += $(this).width();
+		});
+		var mainWidth = $('#xld-main').width();
+		var xl = 0;
+		if (mainWidth < sumWidth)
+			xl = mainWidth - sumWidth;
+		console.log('scroll to ' );
+		console.log(xl);
+		$('#xld-main-scroll').animate({'left' : xl + 'px'  });
+	}
+
 }]);
+
+
+	/* =================================================== DIRECTIVES ======================================== */
+
+	// Handles browser window resizing ... sets windowArea size
+	xldApp.directive('xldWindowResize', function ($window) {
+		return function (scope, element) {
+			var w = angular.element($window);
+			var head = $('#xld-nav-main');
+			
+			scope.getWindowDimensions = function () {
+				return { 'h': w.height()  - head.height() , 'w': w.width() };
+			};
+			scope.$watch(scope.getWindowDimensions, function (newValue, oldValue) {
+				scope.xldMainStyle = function () {
+					return {
+						/*'height': (newValue.h - 0) + 'px',
+						'width': (newValue.w - 0) + 'px'*/
+					};
+				};
+			});
+			
+			w.bind('resize', function () {
+				if (!scope.$$phase)
+					scope.$apply();
+			});
+		}
+	});
+	
+
 
 // ======================= resume ANGULAR BOOTSTRAP ==============================
 angular.element().ready(function () {
 	angular.resumeBootstrap(['xldApp']);
 });
+
+
+

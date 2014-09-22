@@ -19,8 +19,10 @@ routeMatcher.noMatch(function(req) {
 
 
 var addRoute = function(pattern, address) {
+	console.log('add pattern: "'+pattern+'"; address: "'+address+'"');
 	routeMatcher.get(pattern, function(request) {
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
+		console.log('found pattern: "'+pattern+'"; address: "'+address+'"');
 		var r = {};
 		r.params = {};
 		request.params().forEach(function(k, val) {
@@ -28,14 +30,14 @@ var addRoute = function(pattern, address) {
 		});
 		
 		r.path = request.path();
-		
-		if (address == '_index') {
-			address = registeredPatterns['/'];
+		var addr = address;
+		if (addr == '_index') {
+			addr = registeredPatterns['/'];
 			r.path = '/';
 		}
 
 		
-		eb.send(address, r, function(reply) {
+		eb.send(addr, r, function(reply) {
 			if (reply.status) {
 				request.response.statusCode(reply.status);
 			}
@@ -49,7 +51,7 @@ var addRoute = function(pattern, address) {
 
 var registeredPatterns = {};
 var regFunc = function(a) {
-	console.log('API REG ' + a.pattern);
+	//console.log('API REG ' + a.pattern);
 	if (registeredPatterns[a.pattern]) {
 		throw "PATTERN ALREADY REGISTERED!";
 	}

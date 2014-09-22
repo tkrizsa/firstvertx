@@ -1,0 +1,150 @@
+html, body {
+    height:100%;
+    width:100%;
+    position:relative;
+    margin:0;
+    padding:0;
+	/*font-size:14px; /* should adjust with media query and from here only em and rem enabled */
+}
+
+
+div#xld-outer {
+    height:100%; 
+    width:100%; 
+	overflow : hidden;
+    background-color:#333;
+	
+}
+
+div#xld-main {
+	z-index : 500;
+    width:100%;
+    height:80%; 
+	overflow-x:hidden;
+	overflow-y:auto;
+	position:relative;
+    background-color:#e7e7e7;
+}
+
+#xld-main-scroll {
+	position:absolute;
+	left : 0;
+	top : 0;
+	width : 10000px;
+	height:100%;
+	overflow:hidden;
+	background-color:#eeeeaa;
+}
+
+.xld-page-col {
+	position:relative; 
+	min-width:200px;
+	max-width:500px;
+	height:100%;
+	float:left;
+	outline : 1px solid orange;
+}
+
+
+/* ============================================================= NAVIGATION ============================================================== */
+#xld-nav-main
+		{
+			z-index : 1000;
+			width: 100%;
+			font-weight: 400;
+			
+		}
+
+			#xld-nav-main > a
+			{
+				display: none;
+			}
+
+			#xld-nav-main li
+			{
+				position: relative;
+			}
+				#xld-nav-main li a
+				{
+					color: #fff;
+					display: block;
+				}
+				#xld-nav-main li a:active
+				{
+					background-color: #c00 !important;
+				}
+
+			/*#xld-nav-main span:after
+			{
+				width: 0;
+				height: 0;
+				border: 0.313em solid transparent; 
+				border-bottom: none;
+				border-top-color: #efa585;
+				content: '';
+				vertical-align: middle;
+				display: inline-block;
+				position: relative;
+				right: -0.313em; 
+			}
+			*/
+
+			/* first level */
+
+			#xld-nav-main > ul
+			{
+				height: 1.75em; /* 60 */
+				background-color: #e15a1f;
+			}
+				#xld-nav-main > ul > li
+				{
+					width: 33%;
+					height: 100%;
+					float: left;
+				}
+					#xld-nav-main > ul > li > a
+					{
+						height: 100%;
+						text-align: center;
+					}
+						#xld-nav-main > ul > li:not( :last-child ) > a
+						{
+							border-right: 1px solid #cc470d;
+						}
+						#xld-nav-main > ul > li:hover > a,
+						#xld-nav-main > ul:not( :hover ) > li.active > a
+						{
+							background-color: #cc470d;
+						}
+
+
+				/* second level */
+
+				#xld-nav-main li ul
+				{
+					background-color: #cc470d;
+					display: none;
+					position: absolute;
+					top: 73%;
+					z-index: 1000;
+				}
+					#xld-nav-main li:hover ul
+					{
+						display: block;
+						left: 0;
+						right: 0;
+					}
+						#xld-nav-main li:not( :first-child ):hover ul
+						{
+							left: -1px;
+						}
+						#xld-nav-main li ul a
+						{
+							border-top: 1px solid #e15a1f;
+							padding: 0.75em; /* 15 (20) */
+						}
+							#xld-nav-main li ul li a:hover,
+							#xld-nav-main li ul:not( :hover ) li.active a
+							{
+								background-color: #e15a1f;
+							}

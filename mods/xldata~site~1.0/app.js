@@ -42,6 +42,7 @@ var fileLoader = function(req, replier) {
 
 
 xld.http('/', fileLoader);
+xld.http('/favicon.ico', fileLoader);
 xld.http('/css/:file', fileLoader);
 xld.http('/js/:file', fileLoader);
 xld.http('/js/vendor/:file', fileLoader);
