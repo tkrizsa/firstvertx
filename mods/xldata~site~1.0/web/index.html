@@ -49,11 +49,14 @@
 			</nav>
 			
 			<div id='xld-main' ng-style="xldMainStyle()" >
-				<div id='xld-main-scroll'>
+				<div id='xld-main-scroll'  >
 					<div ng-repeat="page in pages" class='xld-page-col'  >
-						<div style='position:absolute; right:0; top:0; font-size:18px;'><a href='javascript:void(0)' ng-click='page.close()'>x</a></div>
-						{{page.title}}
-						<ng-include src="page.template" onload="page.templateLoaded()" ></ng-include>
+						<div style='display:none; position:absolute; right:0; top:0; font-size:18px; z-index:10000;'><a href='javascript:void(0)' ng-click='page.close()'>x</a></div>
+						<div class='xld-page-scroll' xld-scroll>
+							<div class='xld-page-content' >
+								<ng-include src="page.template" onload="page.templateLoaded()" ></ng-include>
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -63,6 +66,7 @@
 
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
+        <script src="js/vendor/enscroll-0.6.1.min.js"></script>
         <script src="js/vendor/angular.js"></script>
         <script src="js/plugins.js"></script>
         <script src="js/main.js"></script>

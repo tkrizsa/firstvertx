@@ -26,4 +26,5 @@ xld.template('home');
 xld.template('partners');
 xld.template('partners_1');
 xld.template('partners_2');
+xld.template('partners_3');
 xld.template('about');
