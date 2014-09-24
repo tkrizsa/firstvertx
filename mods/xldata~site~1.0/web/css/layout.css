@@ -4,7 +4,7 @@ html, body {
     position:relative;
     margin:0;
     padding:0;
-	/*font-size:14px; /* should adjust with media query and from here only em and rem enabled */
+	/*font-size:11px; /* should adjust with media query and from here only em and rem enabled */
 }
 
 
@@ -38,8 +38,7 @@ div#xld-main {
 
 .xld-page-col {
 	position:relative; 
-	min-width:320px;
-	max-width:320px;
+	width:100%; /* javascript overrides it */
 	height:100%;
 	float:left;
 	outline : 1px solid orange;

@@ -50,7 +50,7 @@
 			
 			<div id='xld-main' ng-style="xldMainStyle()" >
 				<div id='xld-main-scroll'  >
-					<div ng-repeat="page in pages" class='xld-page-col'  >
+					<div ng-repeat="page in pages | pageSort" class='xld-page-col' id='xld-page-{{page.ix}}' style='max-width:{{getMaxWidth()}};' >
 						<div style='display:none; position:absolute; right:0; top:0; font-size:18px; z-index:10000;'><a href='javascript:void(0)' ng-click='page.close()'>x</a></div>
 						<div class='xld-page-scroll' xld-scroll>
 							<div class='xld-page-content' >
@@ -67,9 +67,11 @@
         <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
         <script>window.jQuery || document.write('<script src="js/vendor/jquery-1.10.2.min.js"><\/script>')</script>
         <script src="js/vendor/enscroll-0.6.1.min.js"></script>
+        <script src="js/vendor/jquery.base64.js"></script>
         <script src="js/vendor/angular.js"></script>
         <script src="js/plugins.js"></script>
         <script src="js/main.js"></script>
+        <script src="js/xld.tools.js"></script>
 
         <!-- Google Analytics: change UA-XXXXX-X to be your site's ID. 
         <script>
