@@ -4,15 +4,26 @@
 .xld-page-content a {
 	text-decoration : none;
 	color:#4786A1;
+	display:inline-block;
 }
 
 	.xld-page-content a:hover {
-		text-decoration : underline;
+		text-decoration : none;
+		color: #fff;
+		background-color:#215CC1;
+	}
+
+	.xld-page-content a:active {
+		background-color: #c00 !important;
 	}
 
 
 .xld-page-content table tr {
 	border-bottom: 1px solid #aaa;
+}
+
+.xld-page-content table tr:hover {
+	background-color:#FFFDD0;
 }
 
 .xld-page-content table td {

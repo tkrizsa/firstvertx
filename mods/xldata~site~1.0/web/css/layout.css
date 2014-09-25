@@ -4,7 +4,7 @@ html, body {
     position:relative;
     margin:0;
     padding:0;
-	/*font-size:11px; /* should adjust with media query and from here only em and rem enabled */
+	font-size:15px; /* should adjust with media query and from here only em and rem enabled */
 }
 
 
@@ -42,7 +42,7 @@ div#xld-main {
 	height:100%;
 	float:left;
 	outline : 1px solid orange;
-	background-color:#eee;
+	background-color:#f4f4f4;
 	overflow:hidden;
 }
 
@@ -50,7 +50,8 @@ div#xld-main {
 	position:relative; 
 	width:100%;
 	height:100%;
-	overflow:auto;
+	overflow-y:auto;
+	overflow-x:hidden;
 }
 
 .xld-page-content {
@@ -62,9 +63,9 @@ div#xld-main {
 #xld-nav-main
 		{
 			z-index : 1000;
-			width: 100%;
+			width: 10000px;
 			font-weight: 400;
-			
+			height : 1.75em;
 		}
 
 			#xld-nav-main > a
@@ -80,53 +81,44 @@ div#xld-main {
 				{
 					color: #fff;
 					display: block;
+					text-decoration: none;
 				}
 				#xld-nav-main li a:active
 				{
 					background-color: #c00 !important;
 				}
 
-			/*#xld-nav-main span:after
-			{
-				width: 0;
-				height: 0;
-				border: 0.313em solid transparent; 
-				border-bottom: none;
-				border-top-color: #efa585;
-				content: '';
-				vertical-align: middle;
-				display: inline-block;
-				position: relative;
-				right: -0.313em; 
-			}
-			*/
-
 			/* first level */
 
 			#xld-nav-main > ul
 			{
-				height: 1.75em; /* 60 */
-				background-color: #e15a1f;
+				height: 2em; 
+				background-color: transparent;
+				margin  : 0;
+				padding : 0;
 			}
 				#xld-nav-main > ul > li
 				{
-					width: 33%;
 					height: 100%;
 					float: left;
+					outline : 0px solid orange;
 				}
 					#xld-nav-main > ul > li > a
 					{
 						height: 100%;
 						text-align: center;
+						padding : 0 2em;
+						line-height : 2em;
+						white-space : nowrap;
 					}
 						#xld-nav-main > ul > li:not( :last-child ) > a
 						{
-							border-right: 1px solid #cc470d;
+							border-right: 1px solid #555;
 						}
 						#xld-nav-main > ul > li:hover > a,
 						#xld-nav-main > ul:not( :hover ) > li.active > a
 						{
-							background-color: #cc470d;
+							background-color: #6FA928;
 						}
 
 
@@ -134,11 +126,13 @@ div#xld-main {
 
 				#xld-nav-main li ul
 				{
-					background-color: #cc470d;
+					background-color: #C79C10;
 					display: none;
 					position: absolute;
-					top: 73%;
+					top: 2em;
 					z-index: 1000;
+					padding:0;
+					margin:0;
 				}
 					#xld-nav-main li:hover ul
 					{
@@ -152,11 +146,11 @@ div#xld-main {
 						}
 						#xld-nav-main li ul a
 						{
-							border-top: 1px solid #e15a1f;
-							padding: 0.75em; /* 15 (20) */
+							border-top: 1px solid #E1B31C;
+							padding: 0.4em 0.75em; /* 15 (20) */
 						}
 							#xld-nav-main li ul li a:hover,
 							#xld-nav-main li ul:not( :hover ) li.active a
 							{
-								background-color: #e15a1f;
+								background-color: #D77E07;
 							}

@@ -4,6 +4,8 @@ $(function() {
 		// $('body').append(resp);
 	// });
 	
+	// 
+	$( '#xld-nav-main li:has(ul)' ).doubleTapToGo();	
 });
 
 
@@ -247,27 +249,18 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 	xldApp.directive('xldWindowResize', function ($window) {
 		return function (scope, element) {
 			var w = angular.element($window);
-			// var head = $('#xld-nav-main');
-			
-			// scope.getWindowDimensions = function () {
-				// return { 'h': w.height()  - head.height() , 'w': w.width() };
-			// };
-			// scope.$watch(scope.getWindowDimensions, function (newValue, oldValue) {
-				// scope.xldMainStyle = function () {
-					// return {
-						// /*'height': (newValue.h - 0) + 'px',
-						// 'width': (newValue.w - 0) + 'px'*/
-					// };
-				// };
-			// });
 			
 			w.bind('resize', function () {
-				console.log('resize...');
+				var head = $('#xld-nav-main');			
+				var main = $('#xld-main');
+				main.css({height : (w.height() - head.height())+'px'});
 				if (!scope.$$phase)
 					scope.$apply(function() {
 						scope.setScroll();
 					});
+					
 			});
+			w.trigger('resize');
 		}
 	});
 	
