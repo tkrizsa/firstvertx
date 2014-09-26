@@ -27,6 +27,25 @@ var Node = function() {
 			});
 		});
 	}
+	
+	this.apiPost = function(pattern, func) {
+		var address = pattern + '_' + Math.random();
+		eb.publish('xld-register-http', {
+			kind 	: 'api',
+			pattern : pattern,
+			address : address,
+			method : 'post'
+		});
+		
+		eb.registerHandler(address, function(req, replier) {
+			func(req, function(obj, objType) {
+				replier({
+					body 			: JSON.stringify(obj),
+					contentType 	: 'application/xldata.'+ objType +'+json'
+				});
+			});
+		});
+	}
 
 
 	this.http = function(pattern, func) {
@@ -45,16 +64,19 @@ var Node = function() {
 	}
 
 
-	this.template = function(templateName) {
-		var address = 'template'  + templateName + '_' + Math.random();
-		eb.publish('xld-register-http', {
+	this.template = function(templatePattern, indexPattern, fileName) {
+		if (typeof fileName != 'string')		fileName = templatePattern;
+		if (typeof indexPattern != 'string')	indexPattern = templatePattern;
+		var address = 'template_'  + templatePattern + '_' + Math.random();
+		eb.publish('xld-register-http', { 
 			kind 	: 'template',
-			pattern : '/'+templateName,
+			pattern : '/templates/'+templatePattern,
+			indexPattern : '/'+indexPattern,
 			address : address
 		});
 		
 		eb.registerHandler(address, function(req, replier) {
-			vertx.fileSystem.readFile('client/'+templateName +'.html', function(err, res) {
+			vertx.fileSystem.readFile('client/'+fileName +'.html', function(err, res) {
 				if (!err) {
 					var x = res.toString();
 					var ct = 'text/html';

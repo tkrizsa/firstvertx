@@ -1,3 +1,7 @@
+* {
+	box-sizing: border-box;
+}
+
 html, body {
     height:100%;
     width:100%;
@@ -5,6 +9,7 @@ html, body {
     margin:0;
     padding:0;
 	font-size:15px; /* should adjust with media query and from here only em and rem enabled */
+	
 }
 
 
@@ -41,7 +46,7 @@ div#xld-main {
 	width:100%; /* javascript overrides it */
 	height:100%;
 	float:left;
-	outline : 1px solid orange;
+	outline : 1px solid #ddd;
 	background-color:#f4f4f4;
 	overflow:hidden;
 }
@@ -56,6 +61,12 @@ div#xld-main {
 
 .xld-page-content {
 	padding:8px;
+}
+
+/* ============== */
+
+.xld-col-1 {
+	width:19rem;
 }
 
 

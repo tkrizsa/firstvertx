@@ -18,9 +18,9 @@ routeMatcher.noMatch(function(req) {
 });
 
 
-var addRoute = function(pattern, address) {
+var addRoute = function(method, pattern, address) {
 	console.log('add pattern: "'+pattern+'"; address: "'+address+'"');
-	routeMatcher.get(pattern, function(request) {
+	routeMatcher[method](pattern, function(request) {
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
 		console.log('found pattern: "'+pattern+'"; address: "'+address+'"');
 		var r = {};
@@ -32,39 +32,57 @@ var addRoute = function(pattern, address) {
 		r.path = request.path();
 		var addr = address;
 		if (addr == '_index') {
-			addr = registeredPatterns['/'];
+			addr = registeredPatterns['get|/'];
 			r.path = '/';
 		}
 
-		
-		eb.send(addr, r, function(reply) {
-			if (reply.status) {
-				request.response.statusCode(reply.status);
-			}
-			if (reply.contentType) {
-				request.response.putHeader('content-type', reply.contentType);
-			}
-			request.response.end(reply.body);
-		});
+		if (method == 'put' || method == 'post') {
+			// should be dangerous in case of large uploaded body, whole body kept in memory!
+			request.bodyHandler(function(body) {
+				r.body = body.toString();
+				eb.send(addr, r, function(reply) {
+					if (reply.status) {
+						request.response.statusCode(reply.status);
+					}
+					if (reply.contentType) {
+						request.response.putHeader('content-type', reply.contentType);
+					}
+					request.response.end(reply.body);
+				});
+			});		
+		} else {
+			eb.send(addr, r, function(reply) {
+				if (reply.status) {
+					request.response.statusCode(reply.status);
+				}
+				if (reply.contentType) {
+					request.response.putHeader('content-type', reply.contentType);
+				}
+				request.response.end(reply.body);
+			});
+		}
 	});
 }
 
 var registeredPatterns = {};
+
 var regFunc = function(a) {
 	//console.log('API REG ' + a.pattern);
-	if (registeredPatterns[a.pattern]) {
+	method = 'get';
+	if (a.method) {
+		method = a.method.toLowerCase();
+	}
+	if (registeredPatterns[method + '|' + a.pattern]) {
 		throw "PATTERN ALREADY REGISTERED!";
 	}
-	registeredPatterns[a.pattern] = a.address;
-	var pat = a.pattern;
+	registeredPatterns[method + '|' + a.pattern] = a.address;
+	addRoute(method, a.pattern, a.address);
 	if (a.kind == 'template') {
-		pat = '/templates' + a.pattern;
+		if (registeredPatterns['get|' + a.indexPattern]) {
+			throw "PATTERN ALREADY REGISTERED!";
+		}
+		addRoute('get', a.indexPattern, '_index');
 	}
-	addRoute(pat, a.address);
-	if (a.kind == 'template') {
-		addRoute(a.pattern, '_index');
-	}
-	
 	
 }	
 

@@ -11,7 +11,8 @@ $(function() {
 
 
 // ======================= config ANGULAR ==============================
-var xldApp = angular.module('xldApp', []);
+xldApp = angular.module('xldApp', []);
+
 
 xldApp.config(function ($controllerProvider, $sceProvider, $locationProvider) {
 	$sceProvider.enabled(false);
@@ -19,22 +20,31 @@ xldApp.config(function ($controllerProvider, $sceProvider, $locationProvider) {
 	
 	$locationProvider.html5Mode(true);
 	$locationProvider.hashPrefix('!');
+	
+	//xldProvider.setSomeConfig(true);	
 });
 
 // ======================= xld PAGE Framework ==============================
 var xld = xld || {};
-xld.Page = function(mainScope, ix, url, template) {
+xld.Page = function(mainScope, ix, urlInfo) {
 	this.mainScope 	= mainScope;
+	this.scope		= false;
 	this.ix 		= ix;
-	this.url		= url;
-	this.title 		= url;
-	this.template 	= template;
+
+	this.urlInfo	= urlInfo;
+	this.title 		= urlInfo.url;
+	this.template 	= urlInfo.template;
+	this.params		= urlInfo.params ? urlInfo.params : {};
+	this.url		= urlInfo.url;
 	
 	this.colsOpt 	= 1;
 	this.colsMin	= 1;
 	this.colsMax	= 1;
 	this.widthSet	= false;
 	
+	this.structs	= [];
+	
+	var thisPage = this;
 	
 	this.close = function() {
 		console.log(this.mainScope);
@@ -53,6 +63,23 @@ xld.Page = function(mainScope, ix, url, template) {
 	
 	this.templateLoaded = function() {
 		this.mainScope.setScroll();
+	}
+	
+	this.init = function(scope) {
+		// scope must call it as first in controller function
+		this.scope = scope;
+		scope.s = this.structs;
+		return this;
+	}
+	
+	this.getStruct = function(alias, url) {
+		// create a new structure, saves in structures array and returns the promise object
+		var struct = this.structs[alias] = xld.getStruct(this, url);
+		struct.than(function() {
+			thisPage.scope.$apply();
+		});
+		return struct;
+		
 	}
 }
 
@@ -112,21 +139,42 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 		
 
 		
-
+	
+		
 		for (var i in bs.pgs) {
 			if (i<=last_ok_bs)
 				continue;
 			var p = bs.pgs[i];
 			
 			var ix = ++$scope.MAX_PAGE_IX;
-			$scope.pages[ix] = new xld.Page($scope, ix, p.url, '/templates' + (p.url == '/' || p.url == '' ? '/home' : p.url));
+			var urlInfo = $scope.parsePageUrl(p.url);
+			$scope.pages[ix] = new xld.Page($scope, ix, urlInfo);
 			
 		}
 		$timeout(function() {
 			$scope.setScroll();
 		},1);
-		
 	});
+	
+	$scope.parsePageUrl = function(url) {
+		if (url.substr(0,1)=='/')
+			url = url.substr(1);
+		var urla = url.split('/');
+		if (urla[0] == 'partners' && parseInt(urla[1]) > 0) {
+			return {
+				url 		: url,
+				template 	: '/templates/partner',
+				params 		: {
+					partnerId : parseInt(urla[1])
+				}
+			}
+		
+		} 
+		return {
+			url 	 : url,
+			template : '/templates/' + (url == '/' || url == '' ? 'home' : url)
+		}
+	}
 
 	
 	$scope.clearPages = function() {
@@ -320,6 +368,32 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 			return arr;
 		}
 	});
+
+
+// ======================= CONTROLLER - termporarily here ==============================
+
+
+xldApp.controller('xldCtrlPartners', ['$scope', function ($scope) {
+	//xldApp.__controllerProvider.register('xldCtrlPartners', ['$scope', function ($scope) {
+	var pg = $scope.page.init($scope);
+	$scope.page.getStruct('partners', '/api/partners')
+	.than(function(resp) {
+		console.log(resp);
+		console.log($scope.s);
+	});
+	
+}]);
+
+xldApp.controller('xldCtrlPartner', ['$scope', '$window', function ($scope, $window) {
+	//xldApp.__controllerProvider.register('xldCtrlPartner', ['$scope', '$window', function ($scope, $window) {
+	var pg = $scope.page.init($scope);
+	$scope.page.getStruct('partner', '/api/partners/'+pg.params.partnerId);
+	$scope.save = function() {
+		$scope.s.partner.save(function() {
+			$window.history.back();
+		});
+	}
+}]);
 
 
 // ======================= resume ANGULAR BOOTSTRAP ==============================
