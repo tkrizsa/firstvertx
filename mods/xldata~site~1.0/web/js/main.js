@@ -81,13 +81,16 @@ xld.Page = function(mainScope, ix, urlInfo) {
 		return struct;
 		
 	}
+	
 }
 
 xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scope, $location, $timeout) {
 
 	$scope.MAX_PAGE_IX = -1;
-	$scope.dims = {};
-	$scope.pages = {};
+	$scope.dims 		= {};
+	$scope.pages 		= {};
+	$scope.urlParsers 	= [];
+	$scope.pendingUrls 	= [];
 	
 	
 	$scope.$on('$locationChangeStart', function(e, newUrl, oldUrl){
@@ -118,7 +121,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 		console.log(bs);
 		// $scope.clearPages();
 	
-		
+		// delete the pages not fitting to url
 		var j = 0;
 		var last_ok_bs = -1;
 		var ok = true;
@@ -137,13 +140,12 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 			delete $scope.pages[i];
 		}
 		
-
-		
-	
-		
+		// load new pages
 		for (var i in bs.pgs) {
+		
 			if (i<=last_ok_bs)
 				continue;
+				
 			var p = bs.pgs[i];
 			
 			var ix = ++$scope.MAX_PAGE_IX;
@@ -151,16 +153,37 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 			$scope.pages[ix] = new xld.Page($scope, ix, urlInfo);
 			
 		}
+		
+		$scope.askPendingUrls();
+		
 		$timeout(function() {
 			$scope.setScroll();
 		},1);
 	});
 	
 	$scope.parsePageUrl = function(url) {
-		if (url.substr(0,1)=='/')
-			url = url.substr(1);
-		var urla = url.split('/');
-		if (urla[0] == 'partners' && parseInt(urla[1]) > 0) {
+		var urlx = url;
+		if (urlx.substr(0,1)=='/')
+			urlx = urlx.substr(1);
+		var urla = urlx.split('/');
+		for (var i in $scope.urlParsers) {
+			var parser = $scope.urlParsers[i];
+			var info = parser.parse(url, urla);
+			if (info) {
+				return info;
+			}
+		}
+		
+		$scope.pendingUrls.push(url);
+		return {
+			url : url,
+			template : false,
+			params : false,
+			pending : true
+		}
+		
+		
+		/*if (urla[0] == 'partners' && parseInt(urla[1]) > 0) {
 			return {
 				url 		: url,
 				template 	: '/templates/partner',
@@ -172,8 +195,18 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 		} 
 		return {
 			url 	 : url,
-			template : '/templates/' + (url == '/' || url == '' ? 'home' : url)
-		}
+			template : '/templates' + (url == '/' || url == '' ? '/home' : url)
+		}*/
+	}
+	
+	$scope.askPendingUrls = function() {
+		if ($scope.pendingUrls.length < 0) 
+			return;
+		$.get('/parseUrls', {urls : JSON.stringify($scope.pendingUrls)}, function(resp) {
+			alert(resp);
+		});
+		
+		$scope.pendingUrls = [];
 	}
 
 	
@@ -286,6 +319,20 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 		else {
 			return $.base64.encode(JSON.stringify(bs));;
 		}
+	}
+	
+	$scope.goForward = function(href,  $event) {
+		console.log($event);
+		
+		$($event.target).closest('.selectable').addClass('selected');
+	
+	
+		var _bs = $scope.getBrowserState();
+		var newHref = href;
+		if (_bs != '')
+			newHref = xld.addParameter(href, '_bs', _bs);
+		$location.url(newHref);
+		
 	}
 
 }]);

@@ -5,8 +5,19 @@ var eb = vertx.eventBus;
 
 var Node = function() {
 
-	this.log = function(x) {
-		console.log(x);
+	this.moduleName = false;
+	this.log = function() {
+	
+		for (var i in arguments) {
+			var x = arguments[i];
+			if (typeof x == 'undefined') {
+				console.log('undefined');
+			} else if (typeof x == 'object') {
+				console.log(JSON.stringify(x, null, 4));
+			} else {
+				console.log(x);
+			}
+		}
 	}
 
 
@@ -27,7 +38,7 @@ var Node = function() {
 			});
 		});
 	}
-	
+
 	this.apiPost = function(pattern, func) {
 		var address = pattern + '_' + Math.random();
 		eb.publish('xld-register-http', {
@@ -47,7 +58,7 @@ var Node = function() {
 		});
 	}
 
-
+ 
 	this.http = function(pattern, func) {
 		var address = pattern + '_' + Math.random();
 		eb.publish('xld-register-http', {
@@ -65,10 +76,14 @@ var Node = function() {
 
 
 	this.template = function(templatePattern, indexPattern, fileName) {
+		if (!this.moduleName)
+			throw "No module name set"; 
+	
 		if (typeof fileName != 'string')		fileName = templatePattern;
 		if (typeof indexPattern != 'string')	indexPattern = templatePattern;
 		var address = 'template_'  + templatePattern + '_' + Math.random();
 		eb.publish('xld-register-http', { 
+			module  : this.moduleName,
 			kind 	: 'template',
 			pattern : '/templates/'+templatePattern,
 			indexPattern : '/'+indexPattern,

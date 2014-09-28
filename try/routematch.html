@@ -1,0 +1,66 @@
+
+
+pattern:<br/>
+<input id='pattern' value='/partner/:partnerId' ><br>
+url:<br/>
+<input id='url'     value = '/partner/25' ><br>
+
+<input type ='button' value='check' onclick='check()'>
+
+<script>
+
+function check() {
+	var pattern = document.getElementById('pattern').value;
+	var url = document.getElementById('url').value;
+
+	console.log('=========== check ===========');
+	console.log(pattern);
+	console.log(url);
+	
+	var paramNames = [];
+
+	while (pattern.substr(0,1) == '/')
+		pattern = pattern.substr(1);
+	
+	var pata = pattern.split('/');
+	var pat = '^';
+	for(var i in pata) {
+		var pp = pata[i];
+		pat += '\\/?';
+		if (pp.substr(0,1) != ':') {
+			pat += pp.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+		} else {
+			paramNames.push(pp.substr(1));
+			pat += '([a-zA-Z0-9_\\-\\.]*)'
+		}
+	
+	}
+	pat += '\\/?$';
+	
+	console.log('PATTERN:'+pat);
+	
+	var reg = new RegExp(pat, 'i');
+	
+	var res = false;
+	var m = url.match(reg);
+	console.log(m);
+	if (m != null) {
+		if (paramNames.length == 0) {
+			res = true;
+		} else {
+			res = {};
+			for (var i in paramNames) {
+				res[paramNames[i]] = m[parseInt(i)+1];
+			}
+		}
+	}
+	console.log(res);
+	
+	
+	//str = str.replace(/[\-\[\]\/\{\}\(\)\*\+\?\.\\\^\$\|]/g, "\\$&");
+	
+}
+
+check();
+
+</script>

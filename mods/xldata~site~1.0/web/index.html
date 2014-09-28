@@ -53,9 +53,7 @@
 					<div ng-repeat="page in pages | pageSort" class='xld-page-col' id='xld-page-{{page.ix}}' style='max-width:{{getMaxWidth()}};' >
 						<div style='display:none; position:absolute; right:0; top:0; font-size:18px; z-index:10000;'><a href='javascript:void(0)' ng-click='page.close()'>x</a></div>
 						<div class='xld-page-scroll' xld-scroll>
-							<div class='xld-page-content' >
-								<ng-include src="page.template" onload="page.templateLoaded()" ></ng-include>
-							</div>
+							<ng-include src="page.template" onload="page.templateLoaded()" class='xld-page-content' ></ng-include>
 						</div>
 					</div>
 				</div>

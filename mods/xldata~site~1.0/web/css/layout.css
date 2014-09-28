@@ -59,7 +59,13 @@ div#xld-main {
 	overflow-x:hidden;
 }
 
-.xld-page-content {
+.xld-page-header {
+float:left;
+width:100%;
+
+}
+
+.xld-page-pad {
 	padding:8px;
 }
 
@@ -68,6 +74,39 @@ div#xld-main {
 .xld-col-1 {
 	width:19rem;
 }
+
+.xld-col-2 {
+	max-width:39rem;
+}
+
+
+/* ============================================================= LIST ============================================================== */
+
+.xld-list {
+	width:100%;
+}
+
+.xld-list.clickable {
+	cursor : pointer;
+}
+
+.xld-list tr {
+	border-bottom: 1px solid #ddd;
+}
+
+.xld-list tr:hover {
+	background-color:#FFF;
+	background-color:#FFFDD0;
+}
+
+.xld-list tr.selected {
+	background-color: #69E0CB;
+}
+
+.xld-list td {
+	padding:0.2rem 1rem;
+}
+
 
 
 /* ============================================================= NAVIGATION ============================================================== */

@@ -1,9 +1,10 @@
-<div xld-page="2,2,2" ng-controller='xldCtrlPartners'>
-<h1>Partners</h1>
-<table>
-	<tr ng-repeat="partner in s.partners._rows">
+<div xld-page="2,2,2" ng-controller='xldCtrlPartners' class='xld-col-2'>
+<h1 class='xld-page-pad'>Partners</h1>
+<table class='xld-list clickable' >
+	<tr ng-repeat="partner in s.partners._rows" class='selectable' ng-click='goForward(partner.gui.href, $event)' >
 		<td>{{partner.partnerId}}</td>
-		<td><a xld-forward  href='/partners/{{partner.partnerId}}'>{{partner.partnerName}}</a></td>
+		<!-- <td><a xld-forward  href='{{partner.gui.href}}'>{{partner.partnerName}}</a></td> -->
+		<td>{{partner.partnerName}}</td>
 		<td>{{partner.partnerStatus}}</td>
 	</tr>
 </table>

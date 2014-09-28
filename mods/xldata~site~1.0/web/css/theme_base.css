@@ -10,6 +10,7 @@ body {
 
 
 
+
 .xld-page-content a {
 	text-decoration : none;
 	color:#4786A1;
@@ -28,19 +29,6 @@ body {
 	}
 
 
-.xld-page-content table tr {
-	border-bottom: 1px solid #aaa;
-}
-
-.xld-page-content table tr:hover {
-	background-color:#FFFDD0;
-	background-color:#FFF;
-}
-
-.xld-page-content table td {
-	padding:1px 8px;
-	
-}
 
 .xld-page-content label {
 font-family: 'Open Sans', sans-serif;

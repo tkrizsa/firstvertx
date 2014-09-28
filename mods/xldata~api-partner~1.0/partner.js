@@ -35,6 +35,9 @@ Partner.prototype.addLink = function(row) {
 	row.self = {
 		href : '/api/partner/' + row.partnerId
 	}
+	row.gui = {
+		href : '/partners/' + row.partnerId
+	}
 }
 
 

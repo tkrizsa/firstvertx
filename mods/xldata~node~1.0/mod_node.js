@@ -2,6 +2,8 @@ var vertx = require('vertx');
 var console = require('vertx/console');
 var container = require('vertx/container');
 var eb = vertx.eventBus;
+var xld = require('xld');
+var rm = require('xldRouteMatcher');
 
 
 
@@ -11,26 +13,65 @@ console.log('XLD Started...');
 
 
 // ===================================== RUN SERVER =====================================
-var routeMatcher = new vertx.RouteMatcher();
-
-routeMatcher.noMatch(function(req) {
-    req.response.end('Nothing matched');
-});
 
 
-var addRoute = function(method, pattern, address) {
-	console.log('add pattern: "'+pattern+'"; address: "'+address+'"');
-	routeMatcher[method](pattern, function(request) {
+var addRoute = function(method, pattern, address, module) {
+
+	rm.register({method : method, pattern : pattern, address : address});
+	console.log('add pattern: "'+pattern+'"; address: "'+address+'"; module: "'+ module + "'");
+}
+
+
+
+var registeredPatterns = {};
+
+var regFunc = function(a) {
+	method = 'get';
+	if (a.method) {
+		method = a.method.toLowerCase();
+	}
+	if (registeredPatterns[method + '|' + a.pattern]) {
+		throw "PATTERN ALREADY REGISTERED!";
+	}
+	registeredPatterns[method + '|' + a.pattern] = a.address;
+	addRoute(method, a.pattern, a.address, a.module);
+	if (a.kind == 'template') {
+		if (registeredPatterns['get|' + a.indexPattern]) {
+			throw "PATTERN ALREADY REGISTERED!";
+		}
+		addRoute('get', a.indexPattern, '_index', a.module);
+	}
+	
+}	
+
+eb.registerHandler('xld-register-http', regFunc);
+
+
+
+var server = vertx.createHttpServer();
+server.ssl(true);
+server.keyStorePath('xldata.jks');
+server.keyStorePassword('qwert1978');
+
+server.requestHandler(function(request) {
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
-		console.log('found pattern: "'+pattern+'"; address: "'+address+'"');
+		x = rm.check(request.method(), request.path());
+		if (!x) {
+			request.response.end('No route found');
+			return;
+		}
+		xld.log('found pattern: "'+x.route.pattern);
 		var r = {};
 		r.params = {};
+		for (var i in x.params) {
+			r.params[i] = x.params[i];
+		}
 		request.params().forEach(function(k, val) {
 			r.params[k] = val;
 		});
 		
 		r.path = request.path();
-		var addr = address;
+		var addr = x.route.address;
 		if (addr == '_index') {
 			addr = registeredPatterns['get|/'];
 			r.path = '/';
@@ -61,46 +102,36 @@ var addRoute = function(method, pattern, address) {
 				request.response.end(reply.body);
 			});
 		}
-	});
-}
-
-var registeredPatterns = {};
-
-var regFunc = function(a) {
-	//console.log('API REG ' + a.pattern);
-	method = 'get';
-	if (a.method) {
-		method = a.method.toLowerCase();
-	}
-	if (registeredPatterns[method + '|' + a.pattern]) {
-		throw "PATTERN ALREADY REGISTERED!";
-	}
-	registeredPatterns[method + '|' + a.pattern] = a.address;
-	addRoute(method, a.pattern, a.address);
-	if (a.kind == 'template') {
-		if (registeredPatterns['get|' + a.indexPattern]) {
-			throw "PATTERN ALREADY REGISTERED!";
-		}
-		addRoute('get', a.indexPattern, '_index');
-	}
-	
-}	
-
-eb.registerHandler('xld-register-http', regFunc);
 
 
 
-var server = vertx.createHttpServer();
 
-server.ssl(true);
-server.keyStorePath('xldata.jks');
-server.keyStorePassword('qwert1978');
-
-server.requestHandler(routeMatcher);
+});
 
 server.listen(8080, '0.0.0.0');
 
- 
+xld.http('/parseUrls', function(req, replier) {
+	replier({body : 'hello parser!'});
+	var modules = {};
+	var urls = JSON.parse(req.params.urls);
+	for (var i in urls) {
+		var url = urls[i];
+		var p = rm.check('get', url);
+		
+		xld.log('================= check url ================== : ', url, p);
+		if (p && p.route.module) {
+			modules[p.route.module] = true;
+		}
+	}
+	var mc = modules.length;
+	for (var m in modules) {
+		
+	
+	
+	}
+	
+});
+
 
 
 
