@@ -46,6 +46,14 @@ xld.Page = function(mainScope, ix, urlInfo) {
 	
 	var thisPage = this;
 	
+	this.reParseUrl = function() {
+		this.urlInfo = this.mainScope.parsePageUrl(this.url);
+		this.title 		= this.urlInfo.url;
+		this.template 	= this.urlInfo.template;
+		this.params		= this.urlInfo.params ? this.urlInfo.params : {};
+		this.url		= this.urlInfo.url;
+	}
+	
 	this.close = function() {
 		console.log(this.mainScope);
 		console.log(this.ix);
@@ -151,7 +159,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 			var ix = ++$scope.MAX_PAGE_IX;
 			if (p.url == '/' || p.url == '')
 				p.url = '/home';
-			var urlInfo = $scope.parsePageUrl(p.url);
+			var urlInfo = $scope.parsePageUrl(p.url, true);
 			$scope.pages[ix] = new xld.Page($scope, ix, urlInfo);
 			
 		}
@@ -163,20 +171,21 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 		},1);
 	});
 	
-	$scope.parsePageUrl = function(url) {
+	$scope.parsePageUrl = function(url, tryLoadParser) {
 		var urlx = url;
 		if (urlx.substr(0,1)=='/')
 			urlx = urlx.substr(1);
 		var urla = urlx.split('/');
 		for (var i in $scope.urlParsers) {
 			var parser = $scope.urlParsers[i];
-			var info = parser.parse(url, urla);
+			var info = parser(url, urla);
 			if (info) {
 				return info;
 			}
 		}
 		
-		$scope.pendingUrls.push(url);
+		if (tryLoadParser)
+			$scope.pendingUrls.push(url);
 		return {
 			url : url,
 			template : false,
@@ -185,27 +194,37 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 		}
 		
 		
-		/*if (urla[0] == 'partners' && parseInt(urla[1]) > 0) {
-			return {
-				url 		: url,
-				template 	: '/templates/partner',
-				params 		: {
-					partnerId : parseInt(urla[1])
-				}
-			}
-		
-		} 
-		return {
-			url 	 : url,
-			template : '/templates' + (url == '/' || url == '' ? '/home' : url)
-		}*/
+
 	}
 	
 	$scope.askPendingUrls = function() {
-		if ($scope.pendingUrls.length < 0) 
+		if ($scope.pendingUrls.length <= 0) 
 			return;
 		$.get('/parseUrls', {urls : JSON.stringify($scope.pendingUrls)}, function(resp) {
-			console.log(resp);
+			var hasNewParser = false;
+			for (var i in resp) {
+				if (!resp.hasOwnProperty(i))
+					continue;
+				var code = resp[i];
+				if (code.kind == 'parser')  {
+					eval(code.body);
+					hasNewParser = true;
+				}
+				if (code.kind == 'template') {
+					$templateCache.put(code.templateName, code.body);
+				}
+			}
+			if (hasNewParser) {
+				for (var ix in $scope.pages) {
+					var page = $scope.pages[ix];
+					if ( page.urlInfo.pending) {
+						page.reParseUrl();
+					}
+				
+				}
+				$scope.$apply();
+			}
+			
 		});
 		
 		$scope.pendingUrls = [];

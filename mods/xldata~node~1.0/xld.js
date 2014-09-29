@@ -6,6 +6,7 @@ var eb = vertx.eventBus;
 var Node = function() {
 
 	this.moduleName = false;
+	this.PATH_DELIMITER = '\\';
 	this.log = function() {
 	
 		for (var i in arguments) {

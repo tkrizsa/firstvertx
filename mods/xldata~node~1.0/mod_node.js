@@ -77,10 +77,12 @@ server.requestHandler(function(request) {
 			r.path = '/';
 		}
 
-		if (method == 'put' || method == 'post') {
+		
+		if (x.route.method == 'put' || x.route.method == 'post') {
 			// should be dangerous in case of large uploaded body, whole body kept in memory!
 			request.bodyHandler(function(body) {
 				r.body = body.toString();
+				xld.log("========================== BOOODY =============================", body);
 				eb.send(addr, r, function(reply) {
 					if (reply.status) {
 						request.response.statusCode(reply.status);
@@ -135,7 +137,7 @@ xld.http('/parseUrls', function(req, replier) {
 		}
 		mc++;
 		eb.send(mp.route.address, null, function(reply) {
-			xld.log("module answer:", reply);
+			//xld.log("module answer:", reply);
 			var mf = JSON.parse(reply.body);
 			for (var i in mf) {
 				mfs.push(mf[i]);

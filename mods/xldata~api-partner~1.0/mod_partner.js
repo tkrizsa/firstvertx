@@ -35,8 +35,8 @@ xld.api('/api/partners/:partnerId', function(req, replier) {
 
 xld.apiPost('/api/partners/:partnerId', function(req, replier) {
 	var p = new Partner();
-	
-	p.loadPost(req.body);
+	xld.log('/=========================POOOOST=====================================', req.body);
+	p.loadPost(req);
 	p.saveSql(function(err) {
 		if (err) {
 			replier(err);
@@ -64,31 +64,42 @@ xld.http('/module/partner', function(req, replier) {
 		var serr = '';
 		var mf = [];
 		
+		var myReadFile = function(f, func) {
+			vertx.fileSystem.readFile(f, function(err, res) {
+				func(err, res, f);
+			});
+		}
+		
 		for (var i = 0; i < res.length; i++) {
 			var f = res[i];
-			vertx.fileSystem.readFile(f, function(err, res) {
+			myReadFile(f, function(err, res, f) {
 				if (!err) {
 					
 					var x = res.toString();
-					var ct = 'text/plain';
-					var file = f.split('/').slice(-1)[0].slice('.')[0];
+					var file = (f.split(xld.PATH_DELIMITER).slice(-1)[0]);
+					file = file.split('.')[0];
+					
 					var ext = f.split('.').slice(-1)[0];
-				
+					xld.log("====>", f, typeof file, file, ext);
 					switch (ext) {
-						case 'html' 	: ct = 'text/html';
+						case 'html' :
+							mf.push({
+								kind : 'template',
+								templateName : '/templates/'+file,
+								module : xld.moduleName,
+								body : x
+							});
 						break;
-						case 'css' 		: ct = 'text/css';
-						break;
-						case 'js' 		: ct = 'text/javascript';
+						case 'js' :	
+							mf.push({
+								kind : 'parser',
+								module : xld.moduleName,
+								body : x
+							});
 						break;
 					
 					}
 				
-					mf.push({
-						kind : 'template',
-						module : xld.moduleName,
-						body : x
-					});
 				} else {
 					xld.log(err); 
 					serr += err + '\r\n';
@@ -104,29 +115,6 @@ xld.http('/module/partner', function(req, replier) {
 			});
 		}
 	});
-
-
-
-	// vertx.fileSystem.readFile('client/' + f, function(err, res) {
-		// if (!err) {
-			// var x = res.toString();
-			// var ct = 'text/plain';
-			// var ext = f.split('.').slice(-1)[0];
-			
-			// switch (ext) {
-				// case 'html' 	: ct = 'text/html';
-				// break;
-				// case 'css' 		: ct = 'text/css';
-				// break;
-				// case 'js' 		: ct = 'text/javascript';
-				// break;
-			
-			// }
-			
-			// replier({body : x, contentType : ct});
-		// } else {
-			// replier({body : '404 not found', status : 404});
-		// }
-	// });
-
+	
+	
 });
