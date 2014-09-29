@@ -62,11 +62,7 @@ xld.http('/module/partner', function(req, replier) {
 		}
 		var fc = res.length;
 		var serr = '';
-		var mf = {
-			'urlParsers' 	: [],
-			'templates' 	: [],
-			'controllers'   : []
-		};
+		var mf = [];
 		
 		for (var i = 0; i < res.length; i++) {
 			var f = res[i];
@@ -88,10 +84,11 @@ xld.http('/module/partner', function(req, replier) {
 					
 					}
 				
-					mf['templates'].push({
+					mf.push({
+						kind : 'template',
+						module : xld.moduleName,
 						body : x
 					});
-					
 				} else {
 					xld.log(err); 
 					serr += err + '\r\n';
@@ -101,7 +98,7 @@ xld.http('/module/partner', function(req, replier) {
 					if (serr) {
 						replier({body : '500 cannot read file\r\n'+serr, status : 500});					
 					} else {
-						replier({body : JSON.stringify(mf), contentType : ct});
+						replier({body : JSON.stringify(mf), contentType : 'application/json'});
 					}
 				}
 			});

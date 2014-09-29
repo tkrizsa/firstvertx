@@ -84,7 +84,7 @@ xld.Page = function(mainScope, ix, urlInfo) {
 	
 }
 
-xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scope, $location, $timeout) {
+xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache', function ($scope, $location, $timeout, $templateCache) {
 
 	$scope.MAX_PAGE_IX = -1;
 	$scope.dims 		= {};
@@ -149,6 +149,8 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 			var p = bs.pgs[i];
 			
 			var ix = ++$scope.MAX_PAGE_IX;
+			if (p.url == '/' || p.url == '')
+				p.url = '/home';
 			var urlInfo = $scope.parsePageUrl(p.url);
 			$scope.pages[ix] = new xld.Page($scope, ix, urlInfo);
 			
@@ -203,7 +205,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', function ($scop
 		if ($scope.pendingUrls.length < 0) 
 			return;
 		$.get('/parseUrls', {urls : JSON.stringify($scope.pendingUrls)}, function(resp) {
-			alert(resp);
+			console.log(resp);
 		});
 		
 		$scope.pendingUrls = [];

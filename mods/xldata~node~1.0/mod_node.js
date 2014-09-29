@@ -17,7 +17,7 @@ console.log('XLD Started...');
 
 var addRoute = function(method, pattern, address, module) {
 
-	rm.register({method : method, pattern : pattern, address : address});
+	rm.register({method : method, pattern : pattern, address : address, module : module});
 	console.log('add pattern: "'+pattern+'"; address: "'+address+'"; module: "'+ module + "'");
 }
 
@@ -31,7 +31,7 @@ var regFunc = function(a) {
 		method = a.method.toLowerCase();
 	}
 	if (registeredPatterns[method + '|' + a.pattern]) {
-		throw "PATTERN ALREADY REGISTERED!";
+		throw "PATTERN ALREADY REGISTERED! ["+method + '|' + a.pattern + "]";
 	}
 	registeredPatterns[method + '|' + a.pattern] = a.address;
 	addRoute(method, a.pattern, a.address, a.module);
@@ -111,7 +111,6 @@ server.requestHandler(function(request) {
 server.listen(8080, '0.0.0.0');
 
 xld.http('/parseUrls', function(req, replier) {
-	replier({body : 'hello parser!'});
 	var modules = {};
 	var urls = JSON.parse(req.params.urls);
 	for (var i in urls) {
@@ -121,12 +120,32 @@ xld.http('/parseUrls', function(req, replier) {
 		xld.log('================= check url ================== : ', url, p);
 		if (p && p.route.module) {
 			modules[p.route.module] = true;
+		} else {
+			xld.log('NOT FOUND : ' + url, p);
 		}
 	}
-	var mc = modules.length;
+	var mc = 0;
+	var mfs = [];
 	for (var m in modules) {
+		xld.log('MODULE : ', m);
+		var mp = rm.check('get', '/module/' + m);
+		if (!m) {
+			xld.log("No route registered for module '" + m + "'");
+			continue;
+		}
+		mc++;
+		eb.send(mp.route.address, null, function(reply) {
+			xld.log("module answer:", reply);
+			var mf = JSON.parse(reply.body);
+			for (var i in mf) {
+				mfs.push(mf[i]);
+			}
+			mc--;
+			if (mc <= 0) {
+				replier({body : JSON.stringify(mfs), contentType : 'application/json'});
+			}
 		
-	
+		});
 	
 	}
 	
