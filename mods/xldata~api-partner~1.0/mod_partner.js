@@ -78,26 +78,29 @@ xld.http('/module/partner', function(req, replier) {
 					var x = res.toString();
 					var file = (f.split(xld.PATH_DELIMITER).slice(-1)[0]);
 					file = file.split('.')[0];
-					
 					var ext = f.split('.').slice(-1)[0];
-					xld.log("====>", f, typeof file, file, ext);
-					switch (ext) {
-						case 'html' :
-							mf.push({
-								kind : 'template',
-								templateName : '/templates/'+file,
-								module : xld.moduleName,
-								body : x
-							});
-						break;
-						case 'js' :	
-							mf.push({
-								kind : 'parser',
-								module : xld.moduleName,
-								body : x
-							});
-						break;
-					
+					var params = extractParams(x);
+					xld.log(file, '------------ params ---------------', params);
+					if (ext == 'html') {
+						mf.push({
+							kind : 'template',
+							templateName : '/templates/'+file,
+							module : xld.moduleName,
+							body : x
+						});
+					} else if (ext == 'js' && params['xld-parser']) {
+						mf.push({
+							kind : 'parser',
+							module : xld.moduleName,
+							body : x
+						});
+					} else if (ext == 'js' && params['xld-controller']) {
+						mf.push({
+							kind : 'controller',
+							name : params['xld-controller'],
+							module : xld.moduleName,
+							body : x
+						});
 					}
 				
 				} else {
@@ -118,3 +121,27 @@ xld.http('/module/partner', function(req, replier) {
 	
 	
 });
+
+var extractParams = function(file) {
+	var params = {};
+	var lines = file.replace(/\r/gm, "").split("\n");
+	for (var l in lines) {
+		var line = lines[l];
+		if (line.indexOf('//@xld') === 0) {
+			var keyval = line.substr(3).trim();
+			var p = keyval.indexOf(':');
+			var key, val;
+			if (p>=0) {
+				key = keyval.substr(0,p).trim();
+				val = keyval.substr(p+1).trim();
+			} else {
+				key = keyval;
+				val = true;
+			}
+			params[key] = val;
+		
+		}
+	
+	}
+	return params;
+}

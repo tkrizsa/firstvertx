@@ -210,6 +210,10 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 					eval(code.body);
 					hasNewParser = true;
 				}
+				if (code.kind == 'controller')  {
+					eval(code.body);
+					hasNewParser = true;
+				}
 				if (code.kind == 'template') {
 					$templateCache.put(code.templateName, code.body);
 				}
@@ -283,17 +287,6 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 		}
 		if (colsLeft > 0) {
 			ps[0].colsAkt += colsLeft;
-			/*var cc = Math.ceil(colsLeft / ps.length);
-			for (var i in ps) {
-				if (cc <= colsLeft) {
-					ps[i].colsAkt += cc;
-					colsLeft -= cc;
-				} else {
-					ps[i].colsAkt += colsLeft;
-					break;
-				}
-			}
-			*/
 		}
 	
 		for (var i in ps) {
@@ -438,30 +431,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 	});
 
 
-// ======================= CONTROLLER - termporarily here ==============================
 
-
-xldApp.controller('xldCtrlPartners', ['$scope', function ($scope) {
-	//xldApp.__controllerProvider.register('xldCtrlPartners', ['$scope', function ($scope) {
-	var pg = $scope.page.init($scope);
-	$scope.page.getStruct('partners', '/api/partners')
-	.than(function(resp) {
-		console.log(resp);
-		console.log($scope.s);
-	});
-	
-}]);
-
-xldApp.controller('xldCtrlPartner', ['$scope', '$window', function ($scope, $window) {
-	//xldApp.__controllerProvider.register('xldCtrlPartner', ['$scope', '$window', function ($scope, $window) {
-	var pg = $scope.page.init($scope);
-	$scope.page.getStruct('partner', '/api/partners/'+pg.params.partnerId);
-	$scope.save = function() {
-		$scope.s.partner.save(function() {
-			$window.history.back();
-		});
-	}
-}]);
 
 
 // ======================= resume ANGULAR BOOTSTRAP ==============================

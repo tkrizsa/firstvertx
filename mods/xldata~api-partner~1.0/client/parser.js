@@ -1,3 +1,4 @@
+//@xld-parser
 $scope.urlParsers.push(function(url, urla) {		
 		
 
@@ -17,3 +18,4 @@ $scope.urlParsers.push(function(url, urla) {
 	}
 	
 });
+
