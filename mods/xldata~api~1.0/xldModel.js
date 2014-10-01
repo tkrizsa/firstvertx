@@ -2,18 +2,52 @@ var vertx = require('vertx');
 var eb = vertx.eventBus;
 var xld = require('xld.js');
 
+var XldField_id 			= require('xldField_id');
+var XldField_txtProp 		= require('xldField_txtProp');
+var XldField_enumProp 		= require('xldField_enumProp');
+
+var global = this;
+
 var xldModel = function() {
 
 	var thisModel = this;
 
 	var vertx = require('vertx');
 	var console = require('vertx/console');
+	
+	var _tableName 		= 'table';
+	var _keyName		= 'id';
 
 	this.fields 		= new Array();
 	this.rows 			= new Array();
-	this.tableName 		= 'table';
-	this.keyName 		= 'id';
+	
+	
+	/* ================================================== DDL ===================================================== */
+	this.tableName = function(x) {
+		if (typeof x == 'string')
+			_tableName = x;
+		return _tableName;
+	}
+	
+	this.fieldAdd = function(fieldName, fieldType, fieldParam1, fieldParam2) {
+		var f = false;
+		if (typeof fieldName == 'object') {
+			f = fieldName;
+		} else {
+			fc = 'XldField_' + fieldType;
+			if (typeof global[fc] != 'function')
+				throw "Unknown fieldType '"+ fieldType +"'.";
+			f = new global[fc](fieldName, fieldParam1, fieldParam2);
+		
+		}
+		this.fields.push(f);
+		if (f.isKey())
+			_keyName = f.fieldName();
+	}
+	
+	
 
+	/* ================================================== DATA ===================================================== */
 	this.get2 = function() {
 		return {
 			fields : this.fields,
@@ -82,6 +116,19 @@ var xldModel = function() {
 		});
 	}
 	
+	this.load = function(partnerId, func) {
+		this.loadSql("SELECT * FROM `" + this.tableName() + "` WHERE `" + _keyName + "` = '" + partnerId + "'", function(err) {
+			if (typeof func == 'function') func(err);
+		});
+	}
+
+	this.loadList = function(func) {
+		this.loadSql("SELECT * FROM `"+ this.tableName() +"` ", function(err) {
+			if (typeof func == 'function') func(err);
+		});
+	}
+	
+	
 	
 	this.loadPost = function(body) {
 		body = JSON.parse(body);
@@ -119,13 +166,13 @@ var xldModel = function() {
 	
 	this.saveSqlRow = function(row, func) {
 		var sql = ""
-			+ "UPDATE `" + this.tableName + "`\r\n"
+			+ "UPDATE `" + this.tableName() + "`\r\n"
 			+ "SET\r\n";
 		var kv = '';
 		var sep = '';
 		for (var i in this.fields) {
 			var fn = this.fields[i];
-			if (fn == this.keyName)	{
+			if (fn == _keyName)	{
 				kv = row[i];
 				continue;
 			}
@@ -134,7 +181,7 @@ var xldModel = function() {
 			sep = ', ';
 			
 		}
-		sql += "WHERE `" + this.keyName + "` = '" + kv + "'";
+		sql += "WHERE `" + _keyName + "` = '" + kv + "'";
 		console.log(sql);
 		eb.send('xld-sql-persist', { "action" : "raw",  "command" : sql}, function(res) 	{
 			if (res.status == 'ok') {
@@ -146,6 +193,13 @@ var xldModel = function() {
 					func(res.message);
 			}
 		});
+	
+	}
+	
+	this.checkDataBase = function() {
+		xld.log('----> database check OK');
+	
+	
 	
 	}
 

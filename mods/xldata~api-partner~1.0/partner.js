@@ -3,33 +3,19 @@ var eb = vertx.eventBus;
 var xld = require('xld.js');
 
 
-var Elem = require('elem.js');
+var Model = require('xldModel.js');
 
 var Partner = function() {
-	Elem.call(this);
+	Model.call(this);
 	
-	this.fields.push('partnerId');
-	this.fields.push('partnerName');
-	this.fields.push('partnerStatus');
-	this.keyName 	= 'partnerId';
-	this.tableName 	= 'partner';
-
+	this.tableName('partner');
+	this.fieldAdd('partnerId', 'id');
+	this.fieldAdd('partnerName', 'txtProp', 100);
+	this.fieldAdd('partnerStatus', 'enumProp', ['programmer', 'customer']);
 };
-Partner.prototype = Object.create(Elem.prototype); 
+Partner.prototype = Object.create(Model.prototype); 
 Partner.prototype.constructor = Partner;
 
-
-Partner.prototype.load = function(partnerId, func) {
-	this.loadSql("SELECT * FROM partner WHERE partnerId = '" + partnerId + "'", function(err) {
-		if (typeof func == 'function') func(err);
-	});
-}
-
-Partner.prototype.loadList = function(func) {
-	this.loadSql("SELECT * FROM partner ", function(err) {
-		if (typeof func == 'function') func(err);
-	});
-}
 
 Partner.prototype.addLink = function(row) {
 	row.self = {
