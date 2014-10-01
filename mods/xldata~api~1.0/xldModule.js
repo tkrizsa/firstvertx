@@ -2,9 +2,9 @@ var vertx = require('vertx');
 var eb = vertx.eventBus;
 var xld = require('xld.js');
 
-var Elem = function() {
+var xldModel = function() {
 
-	var thisElem = this;
+	var thisModel = this;
 
 	var vertx = require('vertx');
 	var console = require('vertx/console');
@@ -42,11 +42,11 @@ var Elem = function() {
 	this.loadSql = function(query, func) {
 		eb.send('xld-sql-persist', { "action" : "raw",  "command" : query}, function(res) 	{
 			if (res.status == 'ok') {
-				thisElem.fields = [];
+				thisModel.fields = [];
 				xld.log("-----------------------------------------------");
 				srow = '';
 				for (var i in res.fields) {
-					thisElem.fields.push(res.fields[i]);
+					thisModel.fields.push(res.fields[i]);
 					srow += res.fields[i] + ' | ';
 				}
 				xld.log(srow);
@@ -66,7 +66,7 @@ var Elem = function() {
 					for (var j in res.results[i]) {
 						newrow.push(res.results[i][j]);
 					}
-					thisElem.rows.push(newrow);
+					thisModel.rows.push(newrow);
 				}
 				
 				if (typeof func == 'function') {
@@ -161,4 +161,4 @@ var Elem = function() {
 }*/
 
 
-module.exports = Elem;
+module.exports = xldModel;
