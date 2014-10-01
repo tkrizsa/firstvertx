@@ -1,0 +1,35 @@
+<script>
+
+var Super = function() {
+
+
+
+	return this;
+}
+
+Super.prototype.xMethod = function() {
+	console.log(this);
+	return "supper-method";
+}
+
+var Child = function() {
+
+	
+
+	this.xMethod = function() {
+		
+		return "child-method" + this.__proto__.xMethod.call(this);
+	}
+}
+Child.prototype = Object.create(Super.prototype); 
+Child.prototype.constructor = Child;
+
+
+var c = new Child();
+
+console.log(c.xMethod());
+
+
+debugger;
+
+</script>

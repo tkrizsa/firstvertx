@@ -13,8 +13,11 @@ XldField = function(fieldName) {
 	this.isKey = function() {
 		return false;
 	}
+	
+}
 
-
+XldField.prototype.toString = function() {
+	return this.fieldName();
 }
 
 

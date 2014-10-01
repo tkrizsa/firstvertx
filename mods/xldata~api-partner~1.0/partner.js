@@ -1,16 +1,15 @@
-var vertx = require('vertx');
-var eb = vertx.eventBus;
 var xld = require('xld.js');
+var Model = require('xldModel');
 
-
-var Model = require('xldModel.js');
+xld.log('**** PMODEL *****' , Model, typeof Model);
 
 var Partner = function() {
 	Model.call(this);
 	
+	this.modelId = 'partner/partner';
 	this.tableName('partner');
 	this.fieldAdd('partnerId', 'id');
-	this.fieldAdd('partnerName', 'txtProp', 100);
+	this.fieldAdd('partnerName', 'stringProp', 100);
 	this.fieldAdd('partnerStatus', 'enumProp', ['programmer', 'customer']);
 };
 Partner.prototype = Object.create(Model.prototype); 
@@ -25,7 +24,5 @@ Partner.prototype.addLink = function(row) {
 		href : '/partners/' + row.partnerId
 	}
 }
-
-
 
 module.exports = Partner;

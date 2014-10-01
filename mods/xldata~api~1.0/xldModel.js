@@ -3,12 +3,15 @@ var eb = vertx.eventBus;
 var xld = require('xld.js');
 
 var XldField_id 			= require('xldField_id');
-var XldField_txtProp 		= require('xldField_txtProp');
+var XldField_stringProp		= require('xldField_stringProp');
+var XldField_textProp 		= require('xldField_textProp');
 var XldField_enumProp 		= require('xldField_enumProp');
+
+var SqlInstall = require('xldSqlInstall');
 
 var global = this;
 
-var xldModel = function() {
+var XldModel = function() {
 
 	var thisModel = this;
 
@@ -18,6 +21,7 @@ var xldModel = function() {
 	var _tableName 		= 'table';
 	var _keyName		= 'id';
 
+	this.modelId		= 'model';
 	this.fields 		= new Array();
 	this.rows 			= new Array();
 	
@@ -43,6 +47,16 @@ var xldModel = function() {
 		this.fields.push(f);
 		if (f.isKey())
 			_keyName = f.fieldName();
+	}
+	
+	this.install = function() {
+		xld.log('------------------ INSTALL ' + this.modelId + ' ---------------------------');
+		var vst = this.tableName() + '#';
+		for (var i in this.fields)
+			vst += this.fields[i].toString() + '|';
+		xld.log(vst);
+		
+	
 	}
 	
 	
@@ -132,6 +146,7 @@ var xldModel = function() {
 	
 	this.loadPost = function(body) {
 		body = JSON.parse(body);
+			
 		this.rows = [];
 		for(var i in body.rows) {
 			xld.log('================================ POST ROW ============================================');
@@ -196,14 +211,13 @@ var xldModel = function() {
 	
 	}
 	
-	this.checkDataBase = function() {
-		xld.log('----> database check OK');
-	
-	
-	
-	}
 
 }
+
+
+XldModel.prototype.addLink = function(row) {
+}
+
 
 /*Elem.prototype.extend = function(obj) {
 	for(var e in Elem) {
@@ -215,4 +229,4 @@ var xldModel = function() {
 }*/
 
 
-module.exports = xldModel;
+module.exports = XldModel;

@@ -14,7 +14,11 @@ var Node = function() {
 			if (typeof x == 'undefined') {
 				console.log('undefined');
 			} else if (typeof x == 'object') {
-				console.log(JSON.stringify(x, null, 4));
+				try {
+					console.log(JSON.stringify(x, null, 4));
+				} catch(e) {
+					console.log(x);
+				}
 			} else {
 				console.log(x);
 			}
