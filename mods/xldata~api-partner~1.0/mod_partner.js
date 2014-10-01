@@ -7,7 +7,8 @@ xld.log('XLD API Partner started ...');
 
 
 
-
+var xp = new Partner();
+xp.checkDataBase();
 
 
 xld.api('/api/partners', function(req, replier) {
