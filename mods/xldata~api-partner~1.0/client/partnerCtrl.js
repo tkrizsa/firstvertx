@@ -6,6 +6,7 @@ xldApp.__controllerProvider.register('xldCtrlPartner', ['$scope', '$window', fun
 	$scope.save = function() {
 		$scope.s.partner.save(function() {
 			$window.history.back();
+			$scope.broadcastRefresh('Partner');
 		});
 	}
 }]);

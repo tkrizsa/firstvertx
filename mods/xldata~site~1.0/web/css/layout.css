@@ -47,7 +47,7 @@ div#xld-main {
 	height:100%;
 	float:left;
 	outline : 1px solid #ddd;
-	background-color:#f4f4f4;
+	background-color:#fdfdfd;
 	overflow:hidden;
 }
 
@@ -72,7 +72,7 @@ width:100%;
 /* ============== */
 
 .xld-col-1 {
-	width:19rem;
+	max-width:19rem;
 }
 
 .xld-col-2 {
@@ -96,11 +96,12 @@ width:100%;
 
 .xld-list tr:hover {
 	background-color:#FFF;
-	background-color:#FFFDD0;
+	background-color:#FDF9E4;
 }
 
 .xld-list tr.selected {
-	background-color: #69E0CB;
+	background-color: #cbd8e0;
+	background-color: #84D0FF;
 }
 
 .xld-list td {
@@ -116,6 +117,7 @@ width:100%;
 			width: 10000px;
 			font-weight: 400;
 			height : 1.75em;
+		
 		}
 
 			#xld-nav-main > a
@@ -176,7 +178,7 @@ width:100%;
 
 				#xld-nav-main li ul
 				{
-					background-color: #C79C10;
+					background-color: #FEBD47;
 					display: none;
 					position: absolute;
 					top: 2em;
@@ -190,6 +192,11 @@ width:100%;
 						left: 0;
 						right: 0;
 					}
+					
+						#xld-nav-main li:hover ul.hideonclick {
+						display:none !important;
+						}
+					
 						#xld-nav-main li:not( :first-child ):hover ul
 						{
 							left: -1px;
@@ -198,9 +205,11 @@ width:100%;
 						{
 							border-top: 1px solid #E1B31C;
 							padding: 0.4em 0.75em; /* 15 (20) */
+							color : #4A3F1E;
 						}
 							#xld-nav-main li ul li a:hover,
 							#xld-nav-main li ul:not( :hover ) li.active a
 							{
-								background-color: #D77E07;
+							background-color: #D09342;
+							color: #080808;
 							}

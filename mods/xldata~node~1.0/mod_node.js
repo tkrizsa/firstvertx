@@ -7,7 +7,7 @@ var rm = require('xldRouteMatcher');
 
 
 
-console.log('XLD Started...');
+xld.log('', '','', '=============================== XLD Started... =================================', '', '');
 
 
 
@@ -18,7 +18,7 @@ console.log('XLD Started...');
 var addRoute = function(method, pattern, address, module) {
 
 	rm.register({method : method, pattern : pattern, address : address, module : module});
-	console.log('add pattern: "'+pattern+'"; address: "'+address+'"; module: "'+ module + "'");
+	//console.log('add pattern: "'+pattern+'"; address: "'+address+'"; module: "'+ module + "'");
 }
 
 
@@ -82,14 +82,15 @@ server.requestHandler(function(request) {
 			// should be dangerous in case of large uploaded body, whole body kept in memory!
 			request.bodyHandler(function(body) {
 				r.body = body.toString();
-				xld.log("========================== BOOODY =============================", body);
+				//xld.log("========================== BOOODY =============================", body);
 				eb.send(addr, r, function(reply) {
 					if (reply.status) {
 						request.response.statusCode(reply.status);
 					}
 					if (reply.contentType) {
-						request.response.putHeader('content-type', reply.contentType);
+						request.response.putHeader('Content-Type', reply.contentType);
 					}
+					
 					request.response.end(reply.body);
 				});
 			});		
@@ -99,8 +100,10 @@ server.requestHandler(function(request) {
 					request.response.statusCode(reply.status);
 				}
 				if (reply.contentType) {
-					request.response.putHeader('content-type', reply.contentType);
+					request.response.putHeader('Content-Type', reply.contentType);
 				}
+				if (request.headers().get('Range')) 
+					request.response.statusCode(206);
 				request.response.end(reply.body);
 			});
 		}
@@ -119,17 +122,16 @@ xld.http('/parseUrls', function(req, replier) {
 		var url = urls[i];
 		var p = rm.check('get', url);
 		
-		xld.log('================= check url ================== : ', url, p);
+		//xld.log('================= check url ================== : ', url, p);
 		if (p && p.route.module) {
 			modules[p.route.module] = true;
 		} else {
-			xld.log('NOT FOUND : ' + url, p);
+			xld.log('parseurl not found : ' + url, p);
 		}
 	}
 	var mc = 0;
 	var mfs = [];
 	for (var m in modules) {
-		xld.log('MODULE : ', m);
 		var mp = rm.check('get', '/module/' + m);
 		if (!m) {
 			xld.log("No route registered for module '" + m + "'");
@@ -155,14 +157,10 @@ xld.http('/parseUrls', function(req, replier) {
 
 
 
-
 // ========================== LOAD MODULES ===========================
 var config = {};
 
 
-container.deployModule("xldata~site~1.0", 				config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
-container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
-//container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 
 
 var sqlConfig = {
@@ -177,9 +175,13 @@ var sqlConfig = {
 }
 
 container.deployModule("io.vertx~mod-mysql-postgresql~0.3.0-SNAPSHOT", 	sqlConfig, function(err, deployID) {
+//container.deployModule("io.vertx~mod-mysql-postgresql_2.10~0.3.1", 	sqlConfig, function(err, deployID) {
 	if (err) {
 		console.log("Deployment failed! " + err.getMessage());
 	} else {
+		container.deployModule("xldata~site~1.0", 				config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
+		container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
+		//container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 	}
 
 	

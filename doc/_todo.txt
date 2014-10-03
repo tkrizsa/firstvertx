@@ -1,0 +1,4 @@
+* escape values in update / insert
+* refresh lists
+
+

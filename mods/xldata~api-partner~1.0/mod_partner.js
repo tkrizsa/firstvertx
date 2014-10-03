@@ -1,20 +1,18 @@
 var vertx = require('vertx');
 var xld = require('xld.js');
 var Partner = require('partner.js');
-var Partner = require('xldSqlInstall.js');
 
 xld.moduleName='partner';
 xld.log('XLD API Partner started ...');
 
 
-var xx = new SqlInstall();
-
 var xp = new Partner();
-//xp.install();
+xp.install();
 
 
 xld.api('/api/partners', function(req, replier) {
 	var p = new Partner();
+	xld.log('=============////////////////////', p.fields);
 	p.loadList(function(err) {
 		if (err) {
 			replier(err);
@@ -27,24 +25,30 @@ xld.api('/api/partners', function(req, replier) {
 
 xld.api('/api/partners/:partnerId', function(req, replier) {
 	var p = new Partner();
-	p.load(req.params.partnerId, function(err) {
-		if (err) {
-			replier(err);
-		} else {
-			replier(p.get());
-		}
-	});
+	if (req.params.partnerId == 'new') {
+		p.addEmptyRow();
+		replier(p.get());
+	
+	} else {
+		p.load(req.params.partnerId, function(err) {
+			if (err) {
+				replier(err);
+			} else {
+				replier(p.get());
+			}
+		});
+	}
 });
 
 xld.apiPost('/api/partners/:partnerId', function(req, replier) {
 	var p = new Partner();
-	xld.log('/=========================POOOOST=====================================', typeof req.body, req.body);
+	//xld.log('/=========================POOOOST=====================================', typeof req.body, req.body);
 	p.loadPost(req.body);
 	p.saveSql(function(err) {
 		if (err) {
-			replier(err);
+			replier(null, err);
 		} else {
-			replier(p.get());
+			replier(p.get(), false, 'partner');
 		}
 	});
 });

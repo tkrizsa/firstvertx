@@ -29,6 +29,8 @@ var fileLoader = function(req, replier) {
 				break;
 				case 'js' 		: ct = 'text/javascript';
 				break;
+				case 'mp3' 		: ct = 'audio/mpeg';
+				break;
 			
 			}
 			
@@ -44,6 +46,7 @@ var fileLoader = function(req, replier) {
 
 xld.http('/', fileLoader);
 xld.http('/favicon.ico', fileLoader);
+xld.http('/audio/:file', fileLoader);
 xld.http('/css/:file', fileLoader);
 xld.http('/js/:file', fileLoader);
 xld.http('/js/vendor/:file', fileLoader);

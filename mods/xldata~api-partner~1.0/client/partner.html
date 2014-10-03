@@ -1,10 +1,11 @@
-<div xld-page="1,1,1" class='xld-col-1' ng-controller='xldCtrlPartner'>
-<div class="xld-page-header xld-page-pad" >
-asdf
+<div xld-page="1,1,1"  ng-controller='xldCtrlPartner'>
+<div class='xld-page-head'>
+	<div class='xld-col-2'>
+		<button ng-click='back()' class='button back'>Cancel</button>
+		<button ng-click='save()' class='button save right'>Save</button>
+	</div>
 </div>
-<div class='xld-page-pad'>
-	<label>Id:</label><br/>
-	<input ng-model="s.partner._rows[0].partnerId" disabled /><br/>
+<div class='xld-page-pad xld-col-2' >
 	<label>Name:</label><br/>
 	<input ng-model="s.partner._rows[0].partnerName" /><br/>
 	<label>Status:</label><br/>
@@ -12,10 +13,12 @@ asdf
 		<option>programmer</option>
 		<option>customer</option>
 	</select>
+	<label>Address:</label><br/>
+	<input ng-model="s.partner._rows[0].address1" /><br/>
 	<br/>
 	<br/>
 	<br/>
-	<button ng-click='save()'>Save</button>
+	
 </div>
 
 

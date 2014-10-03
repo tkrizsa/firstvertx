@@ -5,7 +5,23 @@ $(function() {
 	// });
 	
 	// 
-	$( '#xld-nav-main li:has(ul)' ).doubleTapToGo();	
+	/* $('#xld-nav-main li:has(ul)' ).doubleTapToGo();	*/
+	//$("#xld-nav-main1").mmenu();
+	$("#xld-nav-main1").trigger("open.mm");
+	$("#xld-nav-main ul ul a").click(function() {
+		var $ul = $(this).closest('ul');
+		$ul.addClass('hideonclick');
+		setTimeout(function() {
+			$ul.removeClass('hideonclick');
+		},10);
+	});
+	$("#xld-nav-main > ul > li > a").click(function() {
+		var $ul = $(this).closest('li').find('ul');
+		$ul.addClass('hideonclick');
+		setTimeout(function() {
+			$ul.removeClass('hideonclick');
+		},500);
+	});
 });
 
 
@@ -82,17 +98,18 @@ xld.Page = function(mainScope, ix, urlInfo) {
 	
 	this.getStruct = function(alias, url) {
 		// create a new structure, saves in structures array and returns the promise object
-		var struct = this.structs[alias] = xld.getStruct(this, url);
-		struct.than(function() {
-			thisPage.scope.$apply();
-		});
+		var struct = this.structs[alias] = xld.getStruct(this, url, this.mainScope);
+		// struct.than(function() {
+			// thisPage.scope.$apply();
+		// });
 		return struct;
 		
 	}
 	
 }
 
-xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache', function ($scope, $location, $timeout, $templateCache) {
+/** ============================================== APP CONTROLLER ==================================================== **/
+xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache', '$window', function ($scope, $location, $timeout, $templateCache, $window) {
 
 	$scope.MAX_PAGE_IX = -1;
 	$scope.dims 		= {};
@@ -338,6 +355,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 	$scope.goForward = function(href,  $event) {
 		console.log($event);
 		
+		$($event.target).closest('.selectable').parent().find('.selected').removeClass('selected');
 		$($event.target).closest('.selectable').addClass('selected');
 	
 	
@@ -347,6 +365,62 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 			newHref = xld.addParameter(href, '_bs', _bs);
 		$location.url(newHref);
 		
+	}
+	
+		/* ============================= REFRESH ============================== */
+
+		// refresh('CompanyAddresses');
+		// refresh('CompanyAddresses', {obj : {}});
+		// refresh(['CompanyAddresses' : {}, ...]);
+
+		xld.Refresh = function (p1, p2) {
+			this.things = {};
+
+			if (typeof p1 == 'string') {
+				if (typeof p2 == 'object') {
+					this.things[p1] = p2;
+				} else {
+					this.things[p1] = {};
+				}
+			} else if (typeof p1 == 'object') {
+				for (var i in p1) {
+					this.things[i] = p1[i];
+				}
+			}
+		}
+
+		xld.Refresh.prototype.on = function (thing, p2, p3, p4) {
+			if (typeof p2 == 'function') {
+				if (this.things[thing]) {
+					p2(this.things[thing]);
+				}
+				return;
+			}
+			if (typeof p4 == 'function') {
+				if (this.things[thing]) {
+					var tobj = this.things[thing];
+					if (typeof tobj[p2] != 'undefined' && tobj[p2] == p3) {
+						p4(this.things[thing]);
+					}
+				}
+				return;
+			}
+		}
+
+		$scope.broadcastRefresh = function (p1, p2) {
+			var things = false;
+			if (typeof p1 == 'object ' && p1 instanceof xld.Refresh) {
+				things = p1;
+			} else {
+				things = new xld.Refresh(p1, p2);
+			}
+			$scope.$broadcast('refresh', things);
+		}
+
+
+	$scope.back = function() {
+		$window.history.back();
+
 	}
 
 }]);

@@ -1,15 +1,16 @@
 var xld = xld || {};
 
 
-xld.getStruct = function (page, url) {
-	var s = new xld.Struct(this, url);
+xld.getStruct = function (page, url, scope) {
+	var s = new xld.Struct(this, url, scope);
 	return s;
 }
 
 
-xld.Struct = function(owner, url) {
+xld.Struct = function(owner, url, scope) {
 	this._owner = owner;
 	this._url = url;
+	this._scope = scope;
 	this._rows = false;
 
 	var _thans = [];
@@ -18,37 +19,44 @@ xld.Struct = function(owner, url) {
 	
 	var thisStruct = this;
 	
-	$.get(url, function(resp) {
-		/*var fields = thisStruct._fields = resp.fields;
-		
-		thisStruct._rows = [];
-		$.each(resp.rows, function(j, rowa) {
-			var row  = {};
-			for (var i in fields) {
-				row[fields[i]] = rowa[i];
+	
+	this.reload = function() {
+		$.ajax({
+			url : url, 
+			success : function(resp) {
+				thisStruct._rows = resp.rows;
+				if (thisStruct._rows.length>0) {
+					$.each(thisStruct._rows[0], function(fn, val) {
+						thisStruct[fn] = val;
+					});
+				
+				}
+			
+			
+				$.each(_thans, function(i, func) {
+					if (thisStruct._scope) {
+						thisStruct._scope.$apply(function() {
+							var ret = func(thisStruct);
+						})
+					} else {
+						var ret = func(thisStruct);
+					}
+				});
+				
+				if (_thans.length == 0 && thisStruct._scope) {
+					thisStruct._scope.$apply();
+				}
+				
+			},
+			error : function(resp) {
+				new jBox('Notice', {
+					content : resp.responseText
+				});
 			}
-			thisStruct._rows.push(row);
 		});
-
-		if (thisStruct._rows.length > 0) {
-			for (var i in fields) {
-				thisStruct[fields[i]] = thisStruct._rows[0][fields[i]];
-			}
-		}*/
+	}
 	
-		thisStruct._rows = resp.rows;
-		if (thisStruct._rows.length>0) {
-			$.each(thisStruct._rows[0], function(fn, val) {
-				thisStruct[fn] = val;
-			});
-		
-		}
-	
-	
-		$.each(_thans, function(i, func) {
-			var ret = func(thisStruct);
-		});
-	});
+	this.reload();
 	
 	this.than = function(func) {
 		_thans.push(func);
@@ -61,9 +69,30 @@ xld.Struct = function(owner, url) {
 	}
 	
 	this.save = function(func) {
-		$.post(this._url, JSON.stringify({rows : this._rows}), function(resp) {
-			if (typeof func == 'function') {
-				func();
+		$.ajax({
+			type : 'post',
+			url : this._url, 
+			data : JSON.stringify({rows : this._rows}), 
+			success : function(resp) {
+				if (typeof func == 'function') {
+					if (thisStruct._scope) {
+						thisStruct._scope.$apply(function() {
+							func();
+						});
+					} else {
+						func();
+					}
+				}
+			},
+			error : function(resp) {
+				new jBox('Notice', {
+					content : resp.responseText,
+					position : { x : 'left', y : 'bottom'},
+					stack : true,
+					color : 'red',
+					theme: 'NoticeBorder',
+					audio : '/audio/bling2'
+				});
 			}
 		});
 	

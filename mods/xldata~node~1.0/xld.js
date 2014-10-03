@@ -35,11 +35,23 @@ var Node = function() {
 		});
 		
 		eb.registerHandler(address, function(req, replier) {
-			func(req, function(obj, objType) {
-				replier({
-					body 			: JSON.stringify(obj),
-					contentType 	: 'application/xldata.'+ objType +'+json'
-				});
+			func(req, function(obj, err, objType) {
+				
+				if (!err) {
+					var ot = 'application/xld+json';
+					if (objType)
+						ot = 'application/xld.'+ objType +'+json';
+					replier({
+						body 			: JSON.stringify(obj),
+						contentType 	: ot
+					});
+				} else {
+					replier({
+						body 			: err,
+						status			: 505,
+						contentType 	: 'text/plain'
+					});
+				}
 			});
 		});
 	}
@@ -54,11 +66,22 @@ var Node = function() {
 		});
 		
 		eb.registerHandler(address, function(req, replier) {
-			func(req, function(obj, objType) {
-				replier({
-					body 			: JSON.stringify(obj),
-					contentType 	: 'application/xldata.'+ objType +'+json'
-				});
+			func(req, function(obj, err, objType) {
+				if (!err) {
+					var ot = 'application/xld+json';
+					if (objType)
+						ot = 'application/xld.'+ objType +'+json';
+					replier({
+						body 			: JSON.stringify(obj),
+						contentType 	: ot
+					});
+				} else {
+					replier({
+						body 			: err,
+						status			: 505,
+						contentType 	: 'text/plain'
+					});
+				}
 			});
 		});
 	}
