@@ -1,0 +1,6 @@
+{
+	"main" : "mod_auth.js",
+	"auto-redeploy" : true,
+	"includes" : "xldata~node~1.0,xldata~api~1.0"
+ 
+}

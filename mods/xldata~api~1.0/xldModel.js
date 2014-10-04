@@ -7,6 +7,7 @@ var XldField_id 			= require('xldField_id');
 var XldField_stringProp		= require('xldField_stringProp');
 var XldField_textProp 		= require('xldField_textProp');
 var XldField_enumProp 		= require('xldField_enumProp');
+var XldField_reference 		= require('xldField_reference');
 
 
 var global = this;
@@ -24,8 +25,6 @@ var XldModel = function() {
 	this.modelId		= 'model';
 	this.fields 		= new Array();
 	this.rows 			= new Array();
-	//this.installScripts	= {};
-	
 	
 	/* ================================================== DDL ===================================================== */
 	this.tableName = function(x) {
@@ -50,102 +49,10 @@ var XldModel = function() {
 			_keyName = f.fieldName();
 	}
 	
-	this.install = function() {
-		//xld.log('------------------ INSTALL ' + this.modelId + ' ---------------------------');
-		var vst = this.tableName() + '#';
-		for (var i in this.fields)
-			vst += this.fields[i].toString() + '|';
-		var vcode = md5(vst);
-		//xld.log(vcode);
-		
-		var query = "SELECT modelVersion FROM xld_sql_install WHERE modelId = '"+thisModel.modelId+"' ORDER BY installId ASC";
-		eb.send('xld-sql-persist', { "action" : "raw",  "command" : query}, function(res) 	{
-			if (res.status != 'ok') {
-				xld.log("SQL ERROR : " + res.message);
-				return;
-			}
-			var curVer = '';
-			for (var i in res.results) {
-				var row = res.results[i];
-				curVer = row[0];
-			}
-			if (curVer != vcode) {
-				var inst = thisModel.installScripts;
-				var inAct = -1;
-				for (var i = inst.length-1; i>=0; i--) {
-					if (inst[i].modelVersion == vcode) {
-						inAct = i;
-						break;
-					}
-				}
-				if (inAct<0) {
-					xld.log('INSTALL REQUIRED, BUT MISSING!', 'model: '+ thisModel.modelId, 'version : ' + vcode);
-					return;
-				}
-				var inLast = -2;
-				if (curVer == '') {
-					inLast = -1;
-				} else {
-					for (var i = inst.length-1; i>=0; i--) {
-						if (inst[i].modelVersion == curVer) {
-							inLast = i;
-							break;
-						}
-					}
-				}
-				if (inLast<-1) {
-					xld.log('INSTALL REQUIRED, BUT LAST INSTALLED VERSION MISSING!', 'model: '+ thisModel.modelId, 'version : ' + curVer);
-					return;
-				}
-				
-				xld.log('current, last', inAct, inLast);
-				var queries = [];
-				for (var i = inLast+1; i<=inAct; i++) {
-					xld.log("INSTALLING VERSION : " + inst[i].modelVersion);
-					
-					queries.push(inst[i].sqlScript);
-					
-					var query = "INSERT INTO xld_sql_install (modelId, modelVersion, versionHint, sqlScript) ";
-					query += " VALUES('"+thisModel.escape(thisModel.modelId)+"', '"+thisModel.escape(inst[i].modelVersion)+"', '"+thisModel.escape(inst[i].versionHint)+"', '"+thisModel.escape(inst[i].sqlScript)+"')";
-				
-					queries.push(query);
-				}
-				
-				
-					
-					
-				thisModel.dbUpdate(queries, function(err) {
-					if (!err) {
-						xld.log('INSTALL OK.');
-					}
-				});
-				
-				
-				// eb.send('xld-sql-persist', { "action" : "raw",  "command" : inst[vcode].sqlScript}, function(res) 	{
-					// if (res.status != 'ok') {
-						// xld.log("SQL ERROR (script) : " + res.message, inst[vcode].sqlScript);
-						// return;
-					// }
-					// var query = "INSERT INTO xld_sql_install (modelId, modelVersion, versionHint, sqlScript) ";
-					// query += " VALUES('"+thisModel.escape(thisModel.modelId)+"', '"+thisModel.escape(vcode)+"', '"+thisModel.escape(inst[vcode].versionHint)+"', '"+thisModel.escape(inst[vcode].sqlScript)+"')";
-					// eb.send('xld-sql-persist', { "action" : "raw",  "command" : query}, function(res) 	{
-						// if (res.status != 'ok') {
-							// xld.log("SQL ERROR (log) : " + res.message, query);
-							// return;
-						// }
-						// xld.log("INSTALL OK.");
-					// });
-				// });
-				
-			}
-			
-		});
-		
-	
+	this.getKeyValue = function(row) {
+		return row[_keyName];
 	}
 	
-	
-
 	/* ================================================== DATA ===================================================== */
 	this.get2 = function() {
 		return {
@@ -235,9 +142,9 @@ var XldModel = function() {
 		this.rows = [];
 	}
 	
-	this.load = function(partnerId, func) {
+	this.load = function(id, func) {
 		this.clear();
-		this.loadSql("SELECT * FROM `" + this.tableName() + "` WHERE `" + _keyName + "` = '" + partnerId + "'", function(err) {
+		this.loadSql("SELECT * FROM `" + this.tableName() + "` WHERE `" + _keyName + "` = '" + id + "'", function(err) {
 			if (typeof func == 'function') func(err);
 		});
 	}
@@ -372,8 +279,217 @@ var XldModel = function() {
 	
 	}
 	
+	/* ================================================== CONTROLLER functions ===================================================== */
 	
 	
+	this.addLink = function(row) {
+		row.self = {
+			href : '/api/'+this.modelId+'/' + this.getKeyValue(row)
+		}
+		row.gui = {
+			href : '/'+this.modelId+'s/' + this.getKeyValue(row)
+		}
+	}
+	
+	
+	this.publish = function(name, readonly) {
+		if (!name)
+			name = this.modelId;
+		this.install();
+		this.publishList(name);
+		this.publishElem(name, readonly);
+	}
+	
+	this.publishList = function(name) {
+		xld.api('/api/'+name+'s', function(req, replier) {
+			var p = new thisModel.constructor();
+			p.loadList(function(err) {
+				if (err) {
+					replier(err);
+				} else {
+					replier(p.get());
+				}
+			});
+		});
+		
+		xld.template(name + 's');
+	}
+	
+	this.publishElem = function(name, readonly) {
+
+		xld.api('/api/'+name+'s/:id', function(req, replier) {
+			var p = new thisModel.constructor();
+			if (req.params.id == 'new') {
+				p.addEmptyRow();
+				replier(p.get());
+			} else {
+				p.load(req.params.id, function(err) {
+					if (err) {
+						replier(err);
+					} else {
+						replier(p.get());
+					}
+				});
+			}
+		});
+
+		if (!readonly) {
+			xld.apiPost('/api/'+name+'s/:id', function(req, replier) {
+				var p = new thisModel.constructor();
+				p.loadPost(req.body);
+				p.saveSql(function(err) {
+					if (err) {
+						replier(null, err);
+					} else {
+						replier(p.get(), false, name);
+					}
+				});
+			});
+		}
+
+		xld.template(name, name + 's/:id');
+	}
+	
+	/* ================================================== INSTALL ===================================================== */
+	this.install = function() {
+		//xld.log('------------------ INSTALL ' + this.modelId + ' ---------------------------');
+		var vst = this.tableName() + '#';
+		for (var i in this.fields)
+			vst += this.fields[i].toString() + '|';
+		var vcode = md5(vst);
+		//xld.log(vcode);
+		
+		var query = "SELECT modelVersion FROM xld_sql_install WHERE modelId = '"+thisModel.modelId+"' ORDER BY installId ASC";
+		eb.send('xld-sql-persist', { "action" : "raw",  "command" : query}, function(res) 	{
+			if (res.status != 'ok') {
+				xld.log("SQL ERROR : " + res.message);
+				return;
+			}
+			var curVer = '';
+			for (var i in res.results) {
+				var row = res.results[i];
+				curVer = row[0];
+			}
+			if (curVer != vcode) {
+				xld.log('----------------- INSTALLING MODEL ' + thisModel.modelId + ' --------------------------');
+				xld.log('OLD:'+curVer, 'NEW:'+vcode);
+			
+				thisModel.installLoad(function (inst) {
+					var inAct = -1;
+					for (var i = inst.length-1; i>=0; i--) {
+						if (inst[i].modelVersion == vcode) {
+							inAct = i;
+							break;
+						}
+					}
+					if (inAct<0) {
+						xld.log('INSTALL REQUIRED, BUT MISSING!', 'model: '+ thisModel.modelId, 'version : ' + vcode);
+						return;
+					}
+					var inLast = -2;
+					if (curVer == '') {
+						inLast = -1;
+					} else {
+						for (var i = inst.length-1; i>=0; i--) {
+							if (inst[i].modelVersion == curVer) {
+								inLast = i;
+								break;
+							}
+						}
+					}
+					if (inLast<-1) {
+						xld.log('INSTALL REQUIRED, BUT LAST INSTALLED VERSION MISSING!', 'model: '+ thisModel.modelId, 'version : ' + curVer);
+						return;
+					}
+					
+					xld.log('current, last', inAct, inLast);
+					var queries = [];
+					for (var i = inLast+1; i<=inAct; i++) {
+						xld.log("INSTALLING VERSION : " + inst[i].modelVersion);
+						
+						queries.push(inst[i].sqlScript);
+						
+						var query = "INSERT INTO xld_sql_install (modelId, modelVersion, versionHint, sqlScript) ";
+						query += " VALUES('"+thisModel.escape(thisModel.modelId)+"', '"+thisModel.escape(inst[i].modelVersion)+"', '"+thisModel.escape(inst[i].versionHint)+"', '"+thisModel.escape(inst[i].sqlScript)+"')";
+					
+						queries.push(query);
+					}
+					
+					
+						
+						
+					thisModel.dbUpdate(queries, false, function(err) {
+						if (!err) {
+							xld.log('INSTALL OK.');
+						}
+					});
+					
+				});
+					
+			}
+			
+		});
+		
+	
+	}
+	
+	
+	this.installLoad = function(func) {
+	
+
+		var installScripts = [];
+		var fileName = './install/'+this.modelId+'.sql';
+		vertx.fileSystem.readFile(fileName, function(err, file) {
+			if (err) {
+				xld.log('Error reading '+fileName, err);
+				return;
+			}
+			var newScript = {
+				modelVersion : false,
+				versionHint : '',
+				sqlScript : ''
+			};
+			
+			var lines = file.toString().replace(/\r/gm, "").split("\n");
+			for (var l in lines) {
+				var line = lines[l];
+				
+				if (line.indexOf('--@xld') === 0) {
+					var keyval = line.substr(7).trim();
+					var p = keyval.indexOf(':');
+					var key, val;
+					if (p>=0) {
+						key = keyval.substr(0,p).trim();
+						val = keyval.substr(p+1).trim();
+					} else {
+						key = keyval;
+						val = true;
+					}
+					if (key == 'modelVersion') {
+						
+						if (newScript.modelVersion) {
+							installScripts.push(newScript);
+						}
+						newScript = {
+							modelVersion : val,
+							versionHint : '',
+							sqlScript : ''
+						}
+					} else {
+						newScript[key] = val;
+					}
+				} else {
+					newScript.sqlScript += line + "\r\n";
+				}
+			
+			}
+			if (newScript.modelVersion) {
+				installScripts.push(newScript);
+			}
+			
+			func(installScripts);
+		});
+	}
 
 }
 

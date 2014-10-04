@@ -57,7 +57,7 @@ server.requestHandler(function(request) {
 		console.log('HTTP ' + request.method() + ' ' + request.uri());
 		x = rm.check(request.method(), request.path());
 		if (!x) {
-			request.response.end('No route found');
+			request.response.statusCode(404).statusMessage('No route found').end('No route for ' + request.method() + ' ' + request.uri());
 			return;
 		}
 		xld.log('found pattern: "'+x.route.pattern);
@@ -179,6 +179,7 @@ container.deployModule("io.vertx~mod-mysql-postgresql~0.3.0-SNAPSHOT", 	sqlConfi
 	if (err) {
 		console.log("Deployment failed! " + err.getMessage());
 	} else {
+		container.deployModule("xld~auth~1.0", 					config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		container.deployModule("xldata~site~1.0", 				config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		//container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});

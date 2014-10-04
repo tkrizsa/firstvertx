@@ -1,0 +1,15 @@
+<div xld-page="2,2,2" ng-controller='xldCtrlActors' class=''>
+<div class='xld-page-head'>
+	<div class='xld-col-2'>
+		<a class='button right' href='/actors/new' xld-forward >Add actor</a>
+		<h1 >Actors</h1>
+	</div>
+</div>
+<table class='xld-list clickable xld-col-2' >
+	<tr ng-repeat="actor in s.actors._rows" class='selectable' ng-click='goForward(actor.gui.href, $event)' >
+		<!-- <td><a xld-forward  href='{{partner.gui.href}}'>{{partner.partnerName}}</a></td> -->
+		<td>{{actor.actorName}}</td>
+	</tr>
+</table>
+</div>
+

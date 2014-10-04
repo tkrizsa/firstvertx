@@ -5,9 +5,10 @@ $(function() {
 	// });
 	
 	// 
-	/* $('#xld-nav-main li:has(ul)' ).doubleTapToGo();	*/
+	$('#xld-nav-main li:has(ul)' ).doubleTapToGo();	
 	//$("#xld-nav-main1").mmenu();
-	$("#xld-nav-main1").trigger("open.mm");
+	//$("#xld-nav-main1").trigger("open.mm");
+	
 	$("#xld-nav-main ul ul a").click(function() {
 		var $ul = $(this).closest('ul');
 		$ul.addClass('hideonclick');
