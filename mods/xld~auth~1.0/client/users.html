@@ -1,0 +1,14 @@
+<div xld-page="2,2,2" ng-controller='xldCtrlAuthUsers' class=''>
+<div class='xld-page-head'>
+	<div class='xld-col-2'>
+		<a class='button right' href='/users/new' xld-forward >Add user</a>
+		<h1 >Users</h1>
+	</div>
+</div>
+<table class='xld-list clickable xld-col-2' >
+	<tr ng-repeat="user in s.users._rows" class='selectable' ng-click='goForward(user.user_gui.href, $event)' >
+		<td>{{user.actorName}}</td>
+	</tr>
+</table>
+</div>
+

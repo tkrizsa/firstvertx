@@ -1,4 +1,11 @@
+1) Finish user & credentials & email
+2) refactor and comment code
+3) start documentation!!!!
+
+
+
+
 * escape values in update / insert
-* refresh lists
+
 
 

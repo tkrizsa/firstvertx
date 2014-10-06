@@ -1,12 +1,11 @@
 
-CREATE TABLE actor_x_CredentEmail (
+CREATE TABLE `auth.actor._x_.credent.email` (
 	`aceId` 			INT AUTO_INCREMENT NOT NULL,
-	`actorId` 			VARCHAR(250)  NOT NULL,
-	`credentEmailId` 	VARCHAR(32)  NOT NULL,
+	`actorId` 			INT  NOT NULL,
+	`credentEmailId` 	INT  NOT NULL,
 	PRIMARY KEY(`aceId`),
-	FOREIGN KEY (`actorId`) REFERENCES `actor` (`actorId`) 
+	FOREIGN KEY (`actorId`) REFERENCES `actor` (`actorId`) ,
+	FOREIGN KEY (`credentEmailId`) REFERENCES `credentEmail` (`credentId`)
 )
 
-
---	FOREIGN KEY (`credentEmailId`) REFERENCES `credentEmail` (`credentId`)
 

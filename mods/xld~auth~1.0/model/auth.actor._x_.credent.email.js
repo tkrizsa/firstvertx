@@ -6,11 +6,11 @@ var Actor_x_CredentEmail = function() {
 	Model.call(this);
 	
 	
-	this.modelId = 'actor._x_.credent.email';
-	this.tableName('actor_x_CredentEmail');
+	this.modelId = 'auth.actor._x_.credent.email';
+	this.tableName('auth.actor._x_.credent.email');
 	this.fieldAdd('aceId', 'id');
-	this.fieldAdd('actorId', 'reference', {'modelId' : 'actor'});
-	this.fieldAdd('credentEmailId', 'reference', {'modelId' : 'credent.email'});
+	this.fieldAdd('actorId', 'master', {'modelId' : 'auth.actor'});
+	this.fieldAdd('credentEmailId', 'master', {'modelId' : 'auth.credent.email'});
 
 	
 };

@@ -28,7 +28,7 @@ div#xld-main {
 	overflow-x:hidden;
 	overflow-y:auto;
 	position:relative;
-    background-color:#e7e7e7;
+    background-color:#fdfdfd;
 }
 
 #xld-main-scroll {
@@ -38,7 +38,8 @@ div#xld-main {
 	width : 10000px;
 	height:100%;
 	overflow:hidden;
-	background-color:#ddd;
+	background-color:#fdfdfd;
+	
 }
 
 .xld-page-col {
@@ -47,9 +48,18 @@ div#xld-main {
 	height:100%;
 	float:left;
 	outline : 1px solid #ddd;
-	background-color:#fdfdfd;
 	overflow:hidden;
+	
+	background-color:#fdfdfd;
+	background-color: #f8f8f8;
+	box-shadow: 5px 0px 10px -3px rgba(0, 0, 0, 0.11) inset;	
 }
+
+	.xld-page-col:first-child {
+	outline : none;
+	background-color:#fdfdfd;
+	box-shadow : none;
+	}
 
 .xld-page-scroll {
 	position:relative; 

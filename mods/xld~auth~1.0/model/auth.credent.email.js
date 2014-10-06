@@ -6,8 +6,8 @@ var CredentEmail = function() {
 	Model.call(this);
 	
 	
-	this.modelId = 'credent.email';
-	this.tableName('credentEmail');
+	this.modelId = 'auth.credent.email';
+	this.tableName('auth.credent.email');
 	this.fieldAdd('credentId', 'id');
 	this.fieldAdd('email', 'stringProp', 250);
 	this.fieldAdd('password', 'stringProp', 32);

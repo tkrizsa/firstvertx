@@ -100,9 +100,16 @@ xld.Page = function(mainScope, ix, urlInfo) {
 	this.getStruct = function(alias, url) {
 		// create a new structure, saves in structures array and returns the promise object
 		var struct = this.structs[alias] = xld.getStruct(this, url, this.mainScope);
-		// struct.than(function() {
-			// thisPage.scope.$apply();
-		// });
+		return struct;
+		
+	}
+	
+	this.getStructOne = function(alias, oneAlias, url) {
+		// create a new structure, saves in structures array and returns the promise object
+		var struct = this.structs[alias] = xld.getStruct(this, url, this.mainScope);
+		struct.than(function() {
+			thisPage.structs[oneAlias] = struct._rows[0];
+		});
 		return struct;
 		
 	}
@@ -185,7 +192,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 		$scope.askPendingUrls();
 		
 		$timeout(function() {
-			$scope.setScroll();
+			$scope.setScroll(last_ok_bs<0);
 		},1);
 	});
 	
@@ -218,35 +225,48 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 	$scope.askPendingUrls = function() {
 		if ($scope.pendingUrls.length <= 0) 
 			return;
-		$.get('/parseUrls', {urls : JSON.stringify($scope.pendingUrls)}, function(resp) {
-			var hasNewParser = false;
-			for (var i in resp) {
-				if (!resp.hasOwnProperty(i))
-					continue;
-				var code = resp[i];
-				if (code.kind == 'parser')  {
-					eval(code.body);
-					hasNewParser = true;
-				}
-				if (code.kind == 'controller')  {
-					eval(code.body);
-					hasNewParser = true;
-				}
-				if (code.kind == 'template') {
-					$templateCache.put(code.templateName, code.body);
-				}
-			}
-			if (hasNewParser) {
-				for (var ix in $scope.pages) {
-					var page = $scope.pages[ix];
-					if ( page.urlInfo.pending) {
-						page.reParseUrl();
+		$.ajax({
+			url : '/parseUrls', 
+			data : {urls : JSON.stringify($scope.pendingUrls)}, 
+			success : function(resp) {
+				var hasNewParser = false;
+				for (var i in resp) {
+					if (!resp.hasOwnProperty(i))
+						continue;
+					var code = resp[i];
+					if (code.kind == 'parser')  {
+						eval(code.body);
+						hasNewParser = true;
 					}
-				
+					if (code.kind == 'controller')  {
+						eval(code.body);
+						hasNewParser = true;
+					}
+					if (code.kind == 'template') {
+						$templateCache.put(code.templateName, code.body);
+					}
 				}
-				$scope.$apply();
+				if (hasNewParser) {
+					for (var ix in $scope.pages) {
+						var page = $scope.pages[ix];
+						if ( page.urlInfo.pending) {
+							page.reParseUrl();
+						}
+					
+					}
+					$scope.$apply();
+				}
+				
+			},
+			error : function(resp) {
+				new jBox('Notice', {
+					content : resp.responseText,
+					attributes: {x: 'left', y: 'bottom'},
+					position: 	{x: 50,	y: 5},
+					color : 'red',
+					theme: 'NoticeBorder'
+				});
 			}
-			
 		});
 		
 		$scope.pendingUrls = [];
@@ -278,7 +298,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 		return $scope.dims.mainWidthPx + 'px';
 	}
 	
-	$scope.setScroll = function(beforeApply) {
+	$scope.setScroll = function(noAnimate) {
 		if ($scope.pages.length<=0) {
 			$('#xld-main-scroll').css({'left' : '0px'  });
 			return;
@@ -303,28 +323,29 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 				p.colsAkt = 1;
 			colsLeft -= p.colsAkt;
 		}
-		if (colsLeft > 0) {
+		/*if (colsLeft > 0) {
 			ps[0].colsAkt += colsLeft;
-		}
+		}*/
 	
 		for (var i in ps) {
 			var xw = (ps[i].colsAkt * $scope.dims.colWidthPx) + 'px';
-			if (beforeApply) {
-				
-			} else {
-				$('#xld-page-' + ps[i].ix).stop(true).animate({'width' : xw});
-			}
+			var $page = $('#xld-page-' + ps[i].ix);
+			$page.stop(true);
+			$page[noAnimate?'css':'animate']({'width' : xw});
 		}
 	
 		
 		var xl = 0;
 		if (colsLeft < 0)
 			xl = colsLeft * $scope.dims.colWidthPx;
-			
-		if (!beforeApply) {
-			console.log('scroll to '  + xl);
-			$('#xld-main-scroll').stop(true).animate({'left' : xl + 'px'  });
+		else if (colsLeft > 0) {
+			xl = (colsLeft * $scope.dims.colWidthPx) / 2;
 		}
+			
+		console.log('scroll to '  + xl);
+		var $scroll = $('#xld-main-scroll');
+		$scroll.stop(true);
+		$scroll[noAnimate?'css':'animate']({'left' : xl + 'px'  });
 	}
 	
 	$scope.setForward = function() {

@@ -25,6 +25,8 @@ xld.Struct = function(owner, url, scope) {
 			url : url, 
 			success : function(resp) {
 				thisStruct._rows = resp.rows;
+				if (resp.templates)
+					thisStruct.templates = resp.templates;
 				if (thisStruct._rows.length>0) {
 					$.each(thisStruct._rows[0], function(fn, val) {
 						thisStruct[fn] = val;
@@ -87,11 +89,16 @@ xld.Struct = function(owner, url, scope) {
 			error : function(resp) {
 				new jBox('Notice', {
 					content : resp.responseText,
-					position : { x : 'left', y : 'bottom'},
-					stack : true,
+					attributes: {
+						x: 'left',
+						y: 'bottom'
+					},
+					position: {  // The position attribute defines the distance to the window edges
+						x: 50,
+						y: 5
+					},
 					color : 'red',
-					theme: 'NoticeBorder',
-					audio : '/audio/bling2'
+					theme: 'NoticeBorder'
 				});
 			}
 		});

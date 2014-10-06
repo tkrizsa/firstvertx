@@ -1,9 +1,10 @@
---@xld-modelVersion	: 09e61252f3496480425c52f6db34ff2f
+--@xld-modelVersion	: 299d9ec34f5068255f5f09feea182b7e
 --@xld-versionHint 	: initial
 
-CREATE TABLE actor (
+CREATE TABLE `auth.actor` (
 	`actorId` INT AUTO_INCREMENT NOT NULL,
 	`actorName` VARCHAR(100)  NOT NULL,
 	PRIMARY KEY(`actorId`)
 )
+	
 	

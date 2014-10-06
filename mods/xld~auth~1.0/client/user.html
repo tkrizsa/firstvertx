@@ -1,0 +1,22 @@
+<div xld-page="1,1,1"  ng-controller='xldCtrlAuthUser'>
+<div class='xld-page-head'>
+	<div class='xld-col-2'>
+		<button ng-click='back()' class='button back'>Cancel</button>
+		<button ng-click='save()' class='button save right'>Save</button>
+	</div>
+</div>
+<div class='xld-page-pad xld-col-2' >
+	<label>User:</label><br/>
+	<input ng-model="s.user.actorName" /><br/>
+	<div ng-repeat="cred in s.user['auth.credent.email']" >
+		<label>Email:</label><br/>
+		<input ng-model="cred.email" /><br/>
+		<label>Password:</label><br/>
+		<input ng-model="cred.password" /><br/>
+	
+	</div>
+</div>
+
+
+</div>
+

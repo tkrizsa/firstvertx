@@ -8,6 +8,7 @@ var XldField_stringProp		= require('xldField_stringProp');
 var XldField_textProp 		= require('xldField_textProp');
 var XldField_enumProp 		= require('xldField_enumProp');
 var XldField_reference 		= require('xldField_reference');
+var XldField_master 		= require('xldField_master');
 
 
 var global = this;
@@ -25,6 +26,7 @@ var XldModel = function() {
 	this.modelId		= 'model';
 	this.fields 		= new Array();
 	this.rows 			= new Array();
+	this.expands		= new Array();
 	
 	/* ================================================== DDL ===================================================== */
 	this.tableName = function(x) {
@@ -53,30 +55,72 @@ var XldModel = function() {
 		return row[_keyName];
 	}
 	
-	/* ================================================== DATA ===================================================== */
-	this.get2 = function() {
-		return {
-			fields : this.fields,
-			rows : this.rows
-		}
+	this.addExpandNN = function(expandModel, modelXFile, modelFile) {
+		this.expands[expandModel] = {
+				kind 		: 'nn',
+				modelXFile	: modelXFile,
+				modelFile	: modelFile
+		};
 	}
 	
-	this.get = function() {
+	/* ================================================== DATA ===================================================== */
+
+	this.getApiRow = function(row, es) {
+	
+		rrow = {};
+		for (var j in this.fields) {
+			var fn = this.fields[j].fieldName();
+			rrow[fn] = row[j];
+		}
+		this.addLink(rrow);
+		
+		if (es) {
+			for (var i in es) {
+				var emi = es[i];
+				if (!this.expands[emi])
+					continue;
+				var exp = this.expands[emi];
+				if (row[exp.modelId]) {
+					rrow[emi] = row[emi];
+				} else {
+					rrow[emi] = [];
+				}
+			
+			}
+		}
+		
+		return rrow;
+	
+	}
+	
+	// should rename to getApiData
+	this.get = function(exps) {
+		var es = false;
+		if (exps)
+			es = exps.split(',');
+	
 		var res = [];
 		for (var i in this.rows) {
-			var row = this.rows[i];
-			rrow = {};
-			for (var j in this.fields) {
-				var fn = this.fields[j].fieldName();
-				rrow[fn] = row[j];
+			res.push(this.getApiRow(this.rows[i], es));
+		}
+		
+		var ret = {rows : res};
+
+		if (es) {
+			var templates = {};
+			for (var i in es) {
+				var emi = es[i];
+				if (!this.expands[emi])
+					continue;
+				var exp = this.expands[emi];
+				xld.log('----:----', exp.modelClass);
+				var exModel = new exp.modelClass();
+				exModel.addEmptyRow();
+				templates[emi] = exModel.getApiRow(exModel.rows[0]);
 			}
-			this.addLink(rrow);
-			res.push(rrow);
-			
-		}
-		return {
-			rows : res
-		}
+			ret.templates = templates;
+		} 
+		return ret;
 	}
 	
 	this.addEmptyRow = function() {
@@ -279,17 +323,31 @@ var XldModel = function() {
 	
 	}
 	
+	this.expandInit = function(exps) {
+		var es = exps.split(',');
+		for (var i in es) {
+			if (!this.expands[es[i]]) {
+				xld.log('EXPAND ERROR! No "' + es[i] + '" in "'+this.modelId+'"');
+				return;
+			}
+			var exp = this.expands[es[i]];
+			if (exp.kind == 'nn') {
+				exp.modelClass = require('./model/' + exp.modelFile + '.js');
+				exp.model = new exp.modelClass();
+				exp.modelXClass = require('./model/' + exp.modelXFile + '.js');
+				exp.modelX = new exp.modelXClass();
+			}
+		}
+	}
+	
+	this.expandLoadItem = function(exp) {
+
+	
+	}
+	
 	/* ================================================== CONTROLLER functions ===================================================== */
 	
 	
-	this.addLink = function(row) {
-		row.self = {
-			href : '/api/'+this.modelId+'/' + this.getKeyValue(row)
-		}
-		row.gui = {
-			href : '/'+this.modelId+'s/' + this.getKeyValue(row)
-		}
-	}
 	
 	
 	this.publish = function(name, readonly) {
@@ -318,16 +376,37 @@ var XldModel = function() {
 	this.publishElem = function(name, readonly) {
 
 		xld.api('/api/'+name+'s/:id', function(req, replier) {
+		
+			var exps = false;
+			if (req.params._expand)
+				exps = req.params._expand;
+		
 			var p = new thisModel.constructor();
+			if (exps)
+				p.expandInit(exps);
+				
 			if (req.params.id == 'new') {
 				p.addEmptyRow();
-				replier(p.get());
+				replier(p.get(exps));
 			} else {
 				p.load(req.params.id, function(err) {
 					if (err) {
 						replier(err);
 					} else {
-						replier(p.get());
+						if (false && req.params._expand) {
+							p.expandLoad(req.params._expand, function(err) {
+								if (err) {
+									replier(err);
+								} else {
+									replier(p.get());
+								}
+							});
+						
+						} else {
+							// nothing to expand
+							replier(p.get());
+						
+						}
 					}
 				});
 			}
@@ -349,6 +428,8 @@ var XldModel = function() {
 
 		xld.template(name, name + 's/:id');
 	}
+	
+	
 	
 	/* ================================================== INSTALL ===================================================== */
 	this.install = function() {
@@ -495,6 +576,14 @@ var XldModel = function() {
 
 
 XldModel.prototype.addLink = function(row) {
+	var kv = this.getKeyValue(row);
+	kv = kv == null ? 'new' : kv;
+	row.self = {
+		href : '/api/'+this.modelId+'/' + kv
+	}
+	row.gui = {
+		href : '/'+this.modelId+'s/' + kv
+	}
 }
 
 // ============================================= TOOLS =========================================

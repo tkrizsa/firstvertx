@@ -116,6 +116,7 @@ server.requestHandler(function(request) {
 server.listen(8080, '0.0.0.0');
 
 xld.http('/parseUrls', function(req, replier) {
+	var serr = '';
 	var modules = {};
 	var urls = JSON.parse(req.params.urls);
 	for (var i in urls) {
@@ -127,7 +128,12 @@ xld.http('/parseUrls', function(req, replier) {
 			modules[p.route.module] = true;
 		} else {
 			xld.log('parseurl not found : ' + url, p);
+			serr += 'Server dont find module for route : ' + url + "\r\n";
 		}
+	}
+	if (serr) {
+		replier({body : serr, status : 400});
+		return;
 	}
 	var mc = 0;
 	var mfs = [];
