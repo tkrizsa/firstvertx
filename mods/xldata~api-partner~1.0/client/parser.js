@@ -1,6 +1,5 @@
 //@xld-parser
-$scope.urlParsers.push(function(url, urla) {		
-		
+xld.mainScope.urlParsers.push(function(url, urla) {		
 	if (urla[0] == 'partners' && urla[1]) {
 		return {
 			url 		: url,

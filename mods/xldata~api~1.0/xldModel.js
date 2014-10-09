@@ -22,11 +22,12 @@ var XldModel = function() {
 	
 	var _tableName 		= 'table';
 	var _keyName		= 'id';
+	var _keyOffset		= 0;
 
 	this.modelId		= 'model';
 	this.fields 		= new Array();
 	this.rows 			= new Array();
-	this.expands		= new Array();
+	this.expands		= {};
 	
 	/* ================================================== DDL ===================================================== */
 	this.tableName = function(x) {
@@ -47,12 +48,19 @@ var XldModel = function() {
 		
 		}
 		this.fields.push(f);
-		if (f.isKey())
+		if (f.isKey()) {
 			_keyName = f.fieldName();
+			_keyOffset = this.fields.length-1;
+		}
+	}
+	
+	this.getKeyName = function() {
+		return _keyName;
 	}
 	
 	this.getKeyValue = function(row) {
-		return row[_keyName];
+	
+		return row[_keyOffset];
 	}
 	
 	this.addExpandNN = function(expandModel, modelXFile, modelFile) {
@@ -72,7 +80,6 @@ var XldModel = function() {
 			var fn = this.fields[j].fieldName();
 			rrow[fn] = row[j];
 		}
-		this.addLink(rrow);
 		
 		if (es) {
 			for (var i in es) {
@@ -85,9 +92,10 @@ var XldModel = function() {
 				} else {
 					rrow[emi] = [];
 				}
-			
 			}
 		}
+		
+		this.addLink(rrow);
 		
 		return rrow;
 	
@@ -201,20 +209,47 @@ var XldModel = function() {
 	}
 	
 	
-	this.loadPost = function(body) {
-		body = JSON.parse(body);
+	
+	this.loadPost = function(body, exps) {
+		//body = JSON.parse(body);
 			
 		this.rows = [];
 		for(var i in body.rows) {
-			xld.log('================================ POST ROW ============================================');
-			var brow = body.rows[i];
-			var row = {};
-			for (var j in this.fields) {
-				var fn = this.fields[j].fieldName();
-				row[j] = brow[fn];
-			}
-			this.rows.push(row);
+			this.loadPostRow(body.rows[i], exps);
 		}
+		
+	}
+	
+	this.loadPostRow = function(brow, exps) {
+		var es = false;
+		if (exps)
+			es = exps.split(',');		
+	
+		var row = {};
+		for (var j in this.fields) {
+			var fn = this.fields[j].fieldName();
+			row[j] = brow[fn];
+		}
+		
+		if (es) {
+			for (var i in es) {
+				var emi = es[i];
+				if (!this.expands[emi])
+					continue;
+				var exp = this.expands[emi];
+				
+				if (brow[emi]) {
+					var o = new exp.modelClass();
+					o.loadPost({rows:brow[emi]}, exps);
+					row[emi] = o; 
+				} else {
+					row[emi] = [];
+					
+				}
+			}
+		}
+		
+		this.rows.push(row);
 	}
 	
 	this.saveSql = function(func) {
@@ -323,14 +358,15 @@ var XldModel = function() {
 	
 	}
 	
+	/* ============================================= expand ==================================== */
 	this.expandInit = function(exps) {
 		var es = exps.split(',');
-		for (var i in es) {
-			if (!this.expands[es[i]]) {
-				xld.log('EXPAND ERROR! No "' + es[i] + '" in "'+this.modelId+'"');
-				return;
-			}
-			var exp = this.expands[es[i]];
+		for (var esi in es) {
+			
+			if (!this.expands[es[esi]]) 
+				continue;
+
+			var exp = this.expands[es[esi]];
 			if (exp.kind == 'nn') {
 				exp.modelClass = require('./model/' + exp.modelFile + '.js');
 				exp.model = new exp.modelClass();
@@ -340,10 +376,84 @@ var XldModel = function() {
 		}
 	}
 	
-	this.expandLoadItem = function(exp) {
-
-	
+	this.expandLoad = function(exps, func) {
+		var es = exps.split(',');
+		
+		var loadNow = [];
+		for (var esi in es) {
+			if (!this.expands[es[esi]]) 
+				continue;
+				
+			var exp = this.expands[es[esi]];
+			loadNow.push(exp);
+		}
+		
+		if (loadNow.length == 0) {
+			func();
+			return;
+		}
+		var loadNowI = 0;
+		
+		var loadFunc = function(i) {
+			var exp = loadNow[i];
+			if (exp.kind == 'nn') {
+				exp.model.loadDetailNN(thisModel, exp.modelX, function(err) {
+					if (err) {
+						func(err);
+						return;
+					} 
+					i++;
+					if (i>=loadNow.length) {
+						func();
+					} else {
+						loadFunc(i);
+					}
+				});
+			
+			}
+		}
+		loadFunc(loadNowI);
+		
 	}
+	
+	this.loadDetailNN  = function(master, modelX, func) {
+		this.clear();
+		
+		var xKeyName0 = '';
+		var xKeyName1 = '';
+		xld.log('------ check keynames ------');
+		for (var i in modelX.fields) {
+			var f = modelX.fields[i];
+			if (f instanceof XldField_master) {
+				xld.log('bent', f.refModelId);
+				if (f.refModelId == this.modelId)
+					xKeyName0 = f.fieldName();
+				if (f.refModelId == master.modelId)
+					xKeyName1 = f.fieldName();
+				
+			}
+		}
+		
+		xld.log('------- keyvalues ---------');
+		var keyvalues = [];
+		for (var i in master.rows) {
+			var val = master.getKeyValue(master.rows[i]);
+			xld.log('val ', val, i, master.rows[i]);
+			keyvalues .push(val);
+		
+		}
+		
+		var query = '';
+		query += "SELECT t0.* FROM `" + this.tableName() + "` t0 \r\n";
+		query += "INNER JOIN `" + modelX.tableName() + "` t1 ON t1.`" + xKeyName0 + "` = t0.`" + this.getKeyName() + "` \r\n";
+		query += "WHERE t1.`" + xKeyName1 + "` IN (" + keyvalues.join(', ') + ") \r\n";
+		query += "";
+		xld.log(query);
+		this.loadSql(query, function(err) {
+			if (typeof func == 'function') func(err);
+		});
+	}
+	
 	
 	/* ================================================== CONTROLLER functions ===================================================== */
 	
@@ -393,12 +503,12 @@ var XldModel = function() {
 					if (err) {
 						replier(err);
 					} else {
-						if (false && req.params._expand) {
-							p.expandLoad(req.params._expand, function(err) {
+						if (exps) {
+							p.expandLoad(exps, function(err) {
 								if (err) {
 									replier(err);
 								} else {
-									replier(p.get());
+									replier(p.get(exps));
 								}
 							});
 						
@@ -414,8 +524,16 @@ var XldModel = function() {
 
 		if (!readonly) {
 			xld.apiPost('/api/'+name+'s/:id', function(req, replier) {
+
 				var p = new thisModel.constructor();
-				p.loadPost(req.body);
+
+				var exps = false;
+				if (req.params._expand)
+					exps = req.params._expand;			
+				if (exps)
+					p.expandInit(exps);
+			
+				p.loadPost(JSON.parse(req.body), exps);
 				p.saveSql(function(err) {
 					if (err) {
 						replier(null, err);
@@ -576,7 +694,7 @@ var XldModel = function() {
 
 
 XldModel.prototype.addLink = function(row) {
-	var kv = this.getKeyValue(row);
+	var kv = row[this.getKeyName()];
 	kv = kv == null ? 'new' : kv;
 	row.self = {
 		href : '/api/'+this.modelId+'/' + kv

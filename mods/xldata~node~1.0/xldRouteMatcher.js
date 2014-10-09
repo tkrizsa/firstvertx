@@ -41,7 +41,6 @@ var xldRouteMatcher = function() {
 
 	this.check = function(method, path) {
 		method = method.toLowerCase();
-		xld.log('=== CHECK ===', method, path);
 		for (var i in routes) {
 			p = routes[i];
 			if (p.method && p.method != method)

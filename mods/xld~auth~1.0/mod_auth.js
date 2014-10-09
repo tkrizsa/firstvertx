@@ -19,3 +19,7 @@ xld.template('users');
 xld.template('user', 'users/:userId');
 
 
+// var BigInteger = require('biginteger.js');
+// var b = new BigInteger('10000000987654321');
+// b = b.add(1);
+// xld.log(b.toString(16));

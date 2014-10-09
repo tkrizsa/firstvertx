@@ -16,7 +16,7 @@ var Actor = function() {
 
 	// must override to add a "user" link
 	this.addLink = function(row) {
-		var kv = this.getKeyValue(row);
+		var kv = row[this.getKeyName()];
 		kv = kv == null ? 'new' : kv;
 		Model.prototype.addLink.call(this, row);
 		row.user_gui = {

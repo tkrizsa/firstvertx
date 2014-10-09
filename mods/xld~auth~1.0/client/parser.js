@@ -1,5 +1,5 @@
 //@xld-parser
-$scope.urlParsers.push(function(url, urla) {
+xld.mainScope.urlParsers.push(function(url, urla) {
 
 	if (urla[0] == 'actors' && urla[1]) {
 		return {

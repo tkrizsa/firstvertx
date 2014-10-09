@@ -125,6 +125,7 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 	$scope.urlParsers 	= [];
 	$scope.pendingUrls 	= [];
 	
+	xld.mainScope = $scope;
 	
 	$scope.$on('$locationChangeStart', function(e, newUrl, oldUrl){
 		// console.log('$locationChangeStart');
@@ -234,12 +235,13 @@ xldApp.controller('xldMain', ['$scope', '$location', '$timeout', '$templateCache
 					if (!resp.hasOwnProperty(i))
 						continue;
 					var code = resp[i];
-					if (code.kind == 'parser')  {
-						eval(code.body);
-						hasNewParser = true;
-					}
-					if (code.kind == 'controller')  {
-						eval(code.body);
+					if (code.kind == 'parser' || code.kind == 'controller')  {
+						//eval(code.body);
+						var s = document.createElement("script");
+						s.type = "text/javascript";
+						s.innerHTML = code.body;
+						$("head").append(s);						
+						
 						hasNewParser = true;
 					}
 					if (code.kind == 'template') {

@@ -20,5 +20,9 @@ XldField.prototype.toString = function() {
 	return this.fieldName();
 }
 
+XldField.prototype.toSqlValue = function(val) {
+	return "'" + val + "'";
+}
+
 
 module.exports = XldField;

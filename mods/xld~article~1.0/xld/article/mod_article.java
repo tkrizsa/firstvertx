@@ -60,7 +60,7 @@ server.requestHandler(function(request) {
 			request.response.statusCode(404).statusMessage('No route found').end('No route for ' + request.method() + ' ' + request.uri());
 			return;
 		}
-		//xld.log('found pattern: "'+x.route.pattern);
+		xld.log('found pattern: "'+x.route.pattern);
 		var r = {};
 		r.params = {};
 		for (var i in x.params) {
@@ -82,6 +82,7 @@ server.requestHandler(function(request) {
 			// should be dangerous in case of large uploaded body, whole body kept in memory!
 			request.bodyHandler(function(body) {
 				r.body = body.toString();
+				//xld.log("========================== BOOODY =============================", body);
 				eb.send(addr, r, function(reply) {
 					if (reply.status) {
 						request.response.statusCode(reply.status);
@@ -122,6 +123,7 @@ xld.http('/parseUrls', function(req, replier) {
 		var url = urls[i];
 		var p = rm.check('get', url);
 		
+		//xld.log('================= check url ================== : ', url, p);
 		if (p && p.route.module) {
 			modules[p.route.module] = true;
 		} else {
@@ -186,7 +188,6 @@ container.deployModule("io.vertx~mod-mysql-postgresql~0.3.0-SNAPSHOT", 	sqlConfi
 		container.deployModule("xld~auth~1.0", 					config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		container.deployModule("xldata~site~1.0", 				config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		container.deployModule("xldata~api-partner~1.0", 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
-		container.deployModule("xld~article~1.0",		 		config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 		//container.deployModule("xldata~api-flowpartner~1.0", 	config, function(err, deployID) {if (err) {console.log("Deployment failed! " + err.getMessage());}});
 	}
 

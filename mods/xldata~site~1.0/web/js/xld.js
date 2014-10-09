@@ -36,14 +36,12 @@ xld.Struct = function(owner, url, scope) {
 			
 			
 				$.each(_thans, function(i, func) {
+					var ret = func(thisStruct);
 					if (thisStruct._scope) {
-						thisStruct._scope.$apply(function() {
-							var ret = func(thisStruct);
-						})
-					} else {
-						var ret = func(thisStruct);
+						thisStruct._scope.$apply();
 					}
 				});
+				
 				
 				if (_thans.length == 0 && thisStruct._scope) {
 					thisStruct._scope.$apply();

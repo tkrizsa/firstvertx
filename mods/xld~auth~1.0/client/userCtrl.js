@@ -7,7 +7,6 @@ xldApp.__controllerProvider.register('xldCtrlAuthUser', ['$scope', '$window', fu
 		s.user['auth.credent.email'].push(s.users.templates['auth.credent.email']);
 	});
 	$scope.save = function() {
-		debugger;
 		$scope.s.users.save(function() {
 			$window.history.back();
 			$scope.broadcastRefresh('User');

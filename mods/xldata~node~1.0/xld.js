@@ -16,7 +16,7 @@ var Node = function() {
 				console.log('undefined');
 			} else if (typeof x == 'object') {
 				try {
-					console.log(JSON.stringify(x, null, 4));
+					console.log(JSON.stringify(x, null, 5));
 				} catch(e) {
 					console.log(x);
 				}
@@ -169,7 +169,7 @@ var Node = function() {
 						file = file.split('.')[0];
 						var ext = f.split('.').slice(-1)[0];
 						var params = thisNode.extractClientFileParams(x);
-						thisNode.log(file, '------------ params ---------------', params);
+						//thisNode.log(file, '------------ params ---------------', params);
 						if (ext == 'html') {
 							mf.push({
 								kind : 'template',
