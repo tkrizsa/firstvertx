@@ -36,6 +36,9 @@ public class Node extends Verticle {
 		
 	}
 	
+	public EventBus eb() {
+		return this.vertx.eventBus();
+	}
 
 	public void info(Object o) {
 		container.logger().info(o.toString());

@@ -9,6 +9,8 @@ import org.vertx.java.core.json.JsonArray;
 import xld.node.Node;
 import xld.node.ApiHandler;
 
+import xld.article.Article;
+
 
 public class ModArticle extends Node {
 
@@ -39,8 +41,14 @@ public class ModArticle extends Node {
 		});
 		
 
-
 		registerTemplate("articles");
+		
+		
+		Article art = new Article(this);
+		art.doit();
+		
+		
+
 
 	
 	}
