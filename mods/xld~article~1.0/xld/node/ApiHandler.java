@@ -5,43 +5,73 @@ import org.vertx.java.core.json.JsonObject;
 import org.vertx.java.core.eventbus.Message;
 
 
+
+
 public abstract class ApiHandler implements Handler<Message<JsonObject>> {
 
-	public Message<JsonObject> message;
-	public JsonObject response = new JsonObject();
+	private ApiHandler parent = null;
+	private ApiHandler topMost = null;
+	private Message<JsonObject> message;
+	private JsonObject response;
+	
+	
+	public ApiHandler() {
+		this.topMost = this;
+	}
+	
+	public ApiHandler(ApiHandler parent) {
+		this.parent = this;
+		this.topMost = parent.getTopMost();
+	}
+	
+	public ApiHandler getTopMost() {
+		if (parent != null) {
+			return parent.getTopMost();
+		} else {
+			return this;
+		}
+	}
 	
 	public abstract void handle();
 	
+	// only topmost comes here, as (before) handle API request
 	public void handle(Message<JsonObject> message) {
 		this.message = message;
-		
 		response = new JsonObject();
 		body("");
 		status(200);
 		contentType("text/plain");		
 		
-		this.handle();
+		handle();
+	}
+	
+	// handling topmost requests and replys
+	public Message<JsonObject> getMessage() {
+		return topMost.message;
 	}
 	
 	public void body(String body) {
-		response.putString("body", body);
+		topMost.response.putString("body", body);
 	}
 	
 	public void status(int status) {
-		response.putNumber("status", status);
+		topMost.response.putNumber("status", status);
 	}
 	
 	public void contentType(String contentType) {
-		response.putString("contentType", contentType);
+		topMost.response.putString("contentType", contentType);
 	}
 	
-	
-	
-
 	public void reply() {
-		message.reply(response);
+		topMost.message.reply(topMost.response);
 	}
 	
+	public void replyError(String msg) {
+		body(msg);
+		contentType("text/plain");
+		status(400);
+		reply();	
+	}
 	
 
 

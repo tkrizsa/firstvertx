@@ -1,16 +1,15 @@
 //@xld-parser
-//@xld-parser-name:hello faszom asédlkfj   
 xld.mainScope.urlParsers.push(function(url, urla) {		
-	/*if (urla[0] == 'partners' && urla[1]) {
+	if (urla[0] == 'articles' && urla[1]) {
 		return {
 			url 		: url,
-			template 	: '/templates/partner',
+			template 	: '/templates/article',
 			params 		: {
-				partnerId : urla[1]
+				articleId : urla[1]
 			}
 		}
 	
-	} else*/ if (
+	} else if (
 		url == '/articles' 						||
 		false) 
 	{

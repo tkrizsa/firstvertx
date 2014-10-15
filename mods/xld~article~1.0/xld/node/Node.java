@@ -177,7 +177,7 @@ public class Node extends Verticle {
 					JsonObject fileObj = new JsonObject();
 					if ("html".equals(extension)) {
 						fileObj.putString("kind", "template");
-						fileObj.putString("templateName", "/templates/" + baseName + "." + extension);
+						fileObj.putString("templateName", "/templates/" + baseName);
 						fileObj.putString("module", moduleId);
 						fileObj.putString("body", fileBody);
 						modResult.addObject(fileObj);

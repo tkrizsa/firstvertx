@@ -83,7 +83,7 @@ font-weight: 700;
 border: 1px solid #706536;
 line-height: 1.5rem;
 float : left;
-
+text-shadow: 1px 1px #E6E1CD;
 }
 
 .xld-page-head .button.back {
