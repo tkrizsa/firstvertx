@@ -96,13 +96,13 @@ public class Model implements Iterable {
 	}
 	
 	public IdField fieldAddId(String fieldName) {
-		IdField f = new IdField(fieldName);
+		IdField f = new IdField(this, fieldName);
 		fieldAdd(f);
 		return f;
 	}
 	
 	public StringPropField fieldAddStringProp(String fieldName, int maxLength) {
-		StringPropField f = new StringPropField(fieldName, maxLength);
+		StringPropField f = new StringPropField(this, fieldName, maxLength);
 		fieldAdd(f);
 		return f;
 	}
@@ -130,8 +130,14 @@ public class Model implements Iterable {
 	
 	public Row rowAdd() {
 		Row r = new Row(this);
+		
+		
 		rows.add(r);
 		return r;
+	}
+	
+	public boolean empty() {
+		return rows.size() == 0;
 	}
 	
 	/* ===================================================== JSON ====================================================== */
@@ -143,7 +149,7 @@ public class Model implements Iterable {
 		for (Row row : rows) {
 			JsonObject jrow = new JsonObject();
 			for (Field field : fields) {
-				jrow.putString(field.getFieldName(), row.get(field.getFieldName()).toString());
+				field.jsonGet(row, jrow);
 			}
 			jsonAddLinks(row, jrow);
 			jrows.addObject(jrow);
@@ -153,12 +159,16 @@ public class Model implements Iterable {
 	}
 	
 	protected void jsonAddLinks(Row row, JsonObject jrow) {
+		String keys = keysToString(row);
+		if ("".equals(keys))
+			return;
+	
 		JsonObject jself = new JsonObject();
-		jself.putString("href", "/api/" + getModelIdPlural() + "/" + keysToString(row));
+		jself.putString("href", "/api/" + getModelIdPlural() + "/" + keys);
 		jrow.putObject("self", jself);
 		
 		JsonObject jgui = new JsonObject();
-		jgui.putString("href", "/" + getModelIdPlural() + "/" + keysToString(row));
+		jgui.putString("href", "/" + getModelIdPlural() + "/" + keys);
 		jrow.putObject("gui", jgui);
 	}
 	
@@ -167,13 +177,31 @@ public class Model implements Iterable {
 		for(Field field : fields) {
 			if (!field.isPrimaryKey())
 				continue;
+			Object val = row.get(field.getFieldName());
+			if (val == null)
+				continue;
 			if (!"".equals(keys))
 				keys += KEY_SEPARATOR;
-			keys += row.get(field.getFieldName());
+			keys += val;
 		}
 		return keys;
 	}
 	
+	
+	public void jsonLoad(JsonObject jdata) {
+		clear();
+		JsonArray jrows = jdata.getArray("rows");
+		for (int ix = 0; ix < jrows.size(); ix++) {
+			JsonObject jrow = jrows.get(ix);
+			node.info(jrow);
+			Row row = rowAdd();
+			for (Field f : fields) {
+				f.jsonLoad(row, jrow);
+			}
+		}
+	}
+	
+	/* ===================================================== SQL ====================================================== */
 	public String keySqlWhere(String keys) {
 		String where = " (";
 		String[] keysa = keys.split(KEY_SEPARATOR);
@@ -189,7 +217,6 @@ public class Model implements Iterable {
 		return where + ") ";
 	}
 	
-	/* ===================================================== SQL ====================================================== */
 	
 	
 	public void sqlLoadList(final ApiHandler apiHandler) {

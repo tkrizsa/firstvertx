@@ -1,11 +1,16 @@
 package xld.model;
 
+import org.vertx.java.core.json.JsonObject;
 
-public class Field {
 
-	private String fieldName;
+
+public abstract class Field {
+
+	protected String fieldName;
+	protected Model model;
 	
-	public Field(String fieldName) {
+	public Field(Model model, String fieldName) {
+		this.model = model;
 		this.fieldName = fieldName;
 	}
 	
@@ -17,5 +22,8 @@ public class Field {
 		return false;
 	}
 
+	public abstract void jsonGet(Model.Row row, JsonObject jrow);
+	public abstract void jsonLoad(Model.Row row, JsonObject jrow);
+	
 }
 

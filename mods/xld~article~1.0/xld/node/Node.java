@@ -48,6 +48,10 @@ public class Node extends Verticle {
 	}
 
 	public void registerApi(String pattern, final ApiHandler apiHandler) {		
+		registerApi(pattern, "get", apiHandler);
+	}
+	
+	public void registerApi(String pattern, String method, final ApiHandler apiHandler) {		
 		EventBus eb = vertx.eventBus();
 		Random rand = new Random();
 		int randomNum = rand.nextInt(9999999) + 10000000;
@@ -57,9 +61,9 @@ public class Node extends Verticle {
 		obj.putString("kind", 		"api");
 		obj.putString("pattern", 	pattern);
 		obj.putString("address", 	address);
+		obj.putString("method", 	method);
 		eb.publish("xld-register-http", obj);
 		eb.registerHandler(address, apiHandler);
-	
 	}
 
 	

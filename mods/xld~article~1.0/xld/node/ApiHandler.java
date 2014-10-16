@@ -50,6 +50,14 @@ public abstract class ApiHandler implements Handler<Message<JsonObject>> {
 		return topMost.message;
 	}
 	
+	public String getParam(String paramName) {
+		JsonObject params = getMessage().body().getObject("params");
+		if (params == null)
+			return null;
+		else
+			return params.getString("id");	
+	}
+	
 	public void body(String body) {
 		topMost.response.putString("body", body);
 	}

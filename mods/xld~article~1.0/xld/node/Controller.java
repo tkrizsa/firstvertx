@@ -2,6 +2,7 @@ package xld.node;
 
 import xld.model.Model;
 import java.lang.reflect.Field;
+import org.vertx.java.core.json.JsonObject;
 
 public  class Controller {
 
@@ -104,8 +105,20 @@ public  class Controller {
 			
 				final Model a = createModel();
 				String keys = getMessage().body().getObject("params").getString("id");
+				
+				if ("new".equals(keys)) {
+					a.rowAdd();
+					body(a.jsonGet());
+					contentType("application/json");
+					reply();	
+				}
+				
 				a.sqlLoadByKeys(keys, new ApiHandler(this) {
 					public void handle() {
+						if (a.empty()) {
+							replyError("Not exists");
+							return;
+						}
 						body(a.jsonGet());
 						contentType("application/json");
 						reply();	
@@ -114,8 +127,25 @@ public  class Controller {
 			}
 		});
 	
+		node.registerApi("/api/" + getModelIdPlural() + "/:id" , "post", new ApiHandler () {
+			public void handle() {
+			
+				final Model a = createModel();
+				String keys = getParam("id");
+				
+				String s =  getMessage().body().getString("body");
+				a.jsonLoad(new JsonObject(s));
+				
+				body(a.jsonGet());
+				contentType("application/json");
+				reply();
+			}
+		});
+	
 	
 	}
+	
+	
 	
 	
 
