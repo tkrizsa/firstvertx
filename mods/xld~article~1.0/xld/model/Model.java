@@ -4,6 +4,7 @@ package xld.model;
 import xld.model.Field;
 import xld.node.Node;
 import xld.node.ApiHandler;
+import xld.node.ApiHandlerSql;
 import xld.model.IdField;
 import xld.model.StringPropField;
 
@@ -50,6 +51,7 @@ public class Model implements Iterable {
 		}
 		return null;
 	}
+	
 	
 	
 	//tableName
@@ -202,7 +204,7 @@ public class Model implements Iterable {
 	}
 	
 	/* ===================================================== SQL ====================================================== */
-	public String keySqlWhere(String keys) {
+	public String keySqlWhereByString(String keys) {
 		String where = " (";
 		String[] keysa = keys.split(KEY_SEPARATOR);
 		int i = 0;
@@ -211,12 +213,35 @@ public class Model implements Iterable {
 				continue;
 			if (i>0)
 				where += " AND ";
-			where += "`" + field.getFieldName() + "` = '" + keysa[i] + "'";
+			where += "`" + field.getFieldName() + "` = " + field.sqlValueByString(keysa[i]) ;
 			i++;
 		}
 		return where + ") ";
 	}
 	
+	public String keySqlWhereByRows() {
+		StringBuilder where = new StringBuilder();
+		where.append("(");
+		int i = 0;
+		for (Row row : rows) {
+			if (i>0)
+				where.append(" OR ");
+			where.append("(");
+			int j = 0;
+			for(Field field : fields) {
+				if (!field.isPrimaryKey())
+					continue;
+				if (j>0)
+					where.append(" AND ");
+				where.append("`" + field.getFieldName() + "` = " + field.sqlValue(row));
+				j++;
+			}
+			where.append(")");
+			i++;
+		}
+		where.append(")");
+		return where.toString();
+	}
 	
 	
 	public void sqlLoadList(final ApiHandler apiHandler) {
@@ -224,7 +249,11 @@ public class Model implements Iterable {
 	}
 	
 	public void sqlLoadByKeys(String keys, final ApiHandler apiHandler) {
-		sqlLoad("SELECT * FROM `" + getTableName() + "` WHERE " + keySqlWhere(keys), apiHandler);
+		sqlLoad("SELECT * FROM `" + getTableName() + "` WHERE " + keySqlWhereByString(keys), apiHandler);
+	}
+	
+	public void sqlReload(final ApiHandler apiHandler) {
+		sqlLoad("SELECT * FROM `" + getTableName() + "` WHERE " + keySqlWhereByRows(), apiHandler);
 	}
 	
 	
@@ -290,6 +319,117 @@ public class Model implements Iterable {
 		});
 	}
 	
+	
+	public void sqlSave(final ApiHandler extApiHandler) {
+	
+	
+		final Model thisModel = this;
+	
+		List<String> queries = new ArrayList<String>();
+		for (Row row : rows) {
+			if (row.existing()) {
+				String query = "";
+				String where = " (";
+				query += "UPDATE `" + this.getTableName() + "`" + "\r\n";
+				boolean firstSet = true;
+				boolean firstWhere = true;
+				for (Field f : fields) {
+					if (f.isPrimaryKey()) {
+						if (!firstWhere)
+							where += " AND ";
+						where += " (`" + f.getFieldName() + "` = " + f.sqlValue(row) + ") ";
+						firstWhere = false;
+					} else {
+						if (!firstSet)
+							query += ", ";
+						query += " SET `" + f.getFieldName() + "` = " + f.sqlValue(row) + "\r\n";
+						
+						firstSet = false;
+					}
+				}
+				where += ") ";
+				query += "WHERE " + where + "\r\n";
+				queries.add(query);
+			} else {
+			
+				StringBuilder query  = new StringBuilder();
+				StringBuilder values  = new StringBuilder();
+				query.append("INSERT INTO `" + getTableName() + "` (\r\n");
+				int i = 0;
+				for (Field f : fields) {
+					if (f.isAutoIncrement()) {
+						continue;
+					}
+					if (i>0) {
+						query.append(", ");
+						values.append(", ");
+					}
+					query.append("`").append(f.getFieldName()).append("`");
+					values.append(f.sqlValue(row));
+					i++;
+				}
+				query.append("\r\n) VALUES (\r\n").append(values.toString()).append("\r\n)\r\n");
+				queries.add(query.toString());
+		
+			}
+		}
+		
+		node.info("queries to save : " + queries.size());
+		
+		if (queries.size()==0) {
+			extApiHandler.replyError("nothing to save");
+			return;
+		}
+		
+		sqlRun(queries, new ApiHandler(extApiHandler) {
+			public void handle() {
+				node.info("---> savedddd");
+				sqlReload(extApiHandler);
+			}
+		});
+	
+	
+		//apiHandler.handle();
+	}
+	
+	public void sqlRun(final List<String> queries, final ApiHandler extApiHandler) {
+		
+		
+		
+		extApiHandler.setCounter(queries.size());
+		final StringBuilder errors = new StringBuilder();
+		for (String query : queries) {
+			JsonObject q = new JsonObject();
+			q.putString("action", "raw");
+			q.putString("command", query);		
+			node.eb().send("xld-sql-persist", q, new ApiHandlerSql(extApiHandler) {
+				public void handle() {
+					if (!sqlOk()) {
+						errors.append(sqlError()).append("/r/n");
+					} else {
+					
+					
+					}
+					extApiHandler.oneReady();
+					if (extApiHandler.isReady()) {
+						if (errors.length() == 0) {
+							replyError(errors.toString());
+						} else {
+							extApiHandler.handle();
+						
+						}
+					}
+				
+
+					
+				}
+			});
+		}
+	
+	
+	
+	}
+	
 	/* ===================================================== Row ====================================================== */
 	
 	public static class Row {
@@ -329,6 +469,19 @@ public class Model implements Iterable {
 				return;
 				//throw new IndexOutOfBoundsException();
 			data[ix] = value;
+		}
+		
+		public boolean existing() {
+			for (Field f : model.fields) {
+				if (f.isPrimaryKey()) {
+					if (f.isExistingRow(this))
+						return true;
+					else 
+						return false;
+				}
+			
+			}
+			return false;
 		}
 	}
 	

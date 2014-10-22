@@ -21,9 +21,20 @@ public abstract class Field {
 	public boolean isPrimaryKey() {
 		return false;
 	}
+	
+	public boolean isAutoIncrement() {
+		return false;
+	}
+	
+	// important in key fields, to check if row exists
+	public boolean isExistingRow(Model.Row row) {
+		return false;
+	}
 
 	public abstract void jsonGet(Model.Row row, JsonObject jrow);
 	public abstract void jsonLoad(Model.Row row, JsonObject jrow);
+	public abstract String sqlValue(Model.Row row);
+	public abstract String sqlValueByString(String sval);
 	
 }
 

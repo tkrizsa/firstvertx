@@ -14,13 +14,15 @@ public abstract class ApiHandler implements Handler<Message<JsonObject>> {
 	private Message<JsonObject> message;
 	private JsonObject response;
 	
+	private int counter = 0;
+	
 	
 	public ApiHandler() {
 		this.topMost = this;
 	}
 	
 	public ApiHandler(ApiHandler parent) {
-		this.parent = this;
+		this.parent = parent;
 		this.topMost = parent.getTopMost();
 	}
 	
@@ -82,5 +84,16 @@ public abstract class ApiHandler implements Handler<Message<JsonObject>> {
 	}
 	
 
-
+	// Counter functions
+	
+	public void setCounter(int c) {
+		this.counter = c;
+	}
+	public void oneReady() {
+		this.counter--;
+	}
+	public boolean isReady() {
+		return this.counter <= 0;
+	}
+		
 }

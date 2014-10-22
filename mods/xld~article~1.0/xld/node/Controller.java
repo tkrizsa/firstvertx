@@ -133,12 +133,24 @@ public  class Controller {
 				final Model a = createModel();
 				String keys = getParam("id");
 				
-				String s =  getMessage().body().getString("body");
-				a.jsonLoad(new JsonObject(s));
+				try {
+					String s =  getMessage().body().getString("body");
+					a.jsonLoad(new JsonObject(s));
+				} catch (Exception ex) {
+					node.info("Hiba???");
+					replyError(ex.getMessage());
+					return;
+				}
 				
-				body(a.jsonGet());
-				contentType("application/json");
-				reply();
+				a.sqlSave(new ApiHandler(this) {
+					public void handle() {
+						body(a.jsonGet());
+						contentType("application/json");
+						reply();
+					}
+				
+				});
+				
 			}
 		});
 	
